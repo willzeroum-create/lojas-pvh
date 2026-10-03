@@ -519,3 +519,25 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Fiscal e Pix: operação no balcão; integrações: configuração pela equipe. */
+:is(.fiscal-area, .pix-area, .integracoes-area) { min-width: 0; overflow-wrap: anywhere; }
+:is(.fiscal-area, .pix-area, .integracoes-area) :is(h1, h2, h3) { font-family: var(--font-sans); }
+:is(.fiscal-area, .pix-area, .integracoes-area) :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--color-tangerina-escura);
+  outline-offset: 3px;
+}
+:is(.fiscal-area, .pix-area, .integracoes-area) :is(input, select, textarea) { scroll-margin-block: 6rem; }
+:is(.fiscal-area, .pix-area, .integracoes-area) :is(input, textarea)::placeholder { color: var(--color-carvao); opacity: .7; }
+:is(.fiscal-area, .pix-area, .integracoes-area) .bg-verde-clara.text-verde { color: #176b3a; }
+:is(.fiscal-area, .pix-area, .integracoes-area) .bg-vermelho-clara.text-vermelho { color: #a82a1a; }
+@media (prefers-reduced-motion: reduce) {
+  html:has(.fiscal-area, .pix-area, .integracoes-area),
+  :is(.fiscal-area, .pix-area, .integracoes-area) *,
+  :is(.fiscal-area, .pix-area, .integracoes-area) *::before,
+  :is(.fiscal-area, .pix-area, .integracoes-area) *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

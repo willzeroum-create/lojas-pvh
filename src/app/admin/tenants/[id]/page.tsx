@@ -1,4 +1,4 @@
-import { Download, ExternalLink, FileUp, Images, ListChecks, LogIn, NotebookPen } from 'lucide-react'
+import { Download, ExternalLink, FileUp, Images, ListChecks, LogIn, NotebookPen, Plug } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -99,6 +99,12 @@ export default async function PaginaFichaTenant(props: PageProps<'/admin/tenants
           </Link>
           <Link href={`/admin/tenants/${tenant.id}/importar`} className={BOTAO}>
             <FileUp className="size-4" /> Importar cardápio
+          </Link>
+          <Link
+            href={`/admin/tenants/${tenant.id}/integracoes`}
+            className={`${BOTAO} min-h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta`}
+          >
+            <Plug className="size-4" aria-hidden /> Integrações
           </Link>
           <a href={`/admin/tenants/${tenant.id}/exportar`} className={BOTAO}>
             <Download className="size-4" /> Exportar dados

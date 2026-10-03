@@ -193,8 +193,22 @@ export async function cobrarParcelaPorPix(supabase: Cliente, tenantId: string, p
   const t = p.titulos as unknown as { tipo: string; descricao: string }
   if (t.tipo !== 'receber') throw new ErroDados('Só se cobra por Pix uma conta a receber.')
   if (p.estado === 'paga' || p.estado === 'cancelada') throw new ErroDados('Esta parcela já não está em aberto.')
+  const saldo = saldoParcela(Number(p.valor), Number(p.valor_pago))
+  // Uma cobrança pendente do mesmo saldo, ainda válida por mais de 10 min, é reaproveitada.
+  const { data: pendente } = await supabase
+    .from('cobrancas_pix')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .eq('origem', 'parcela')
+    .eq('origem_id', p.id)
+    .eq('estado', 'pendente')
+    .gt('expira_em', new Date(Date.now() + 10 * 60_000).toISOString())
+    .order('criado_em', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (pendente && Number(pendente.valor) === saldo && pendente.copia_cola) return paraCobranca(pendente)
   return criarCobrancaPix(supabase, tenantId, {
-    valor: saldoParcela(Number(p.valor), Number(p.valor_pago)),
+    valor: saldo,
     descricao: `${t.descricao} · parcela ${p.numero}`,
     origem: 'parcela',
     origemId: p.id,

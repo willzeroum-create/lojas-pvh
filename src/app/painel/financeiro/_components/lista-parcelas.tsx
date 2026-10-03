@@ -14,6 +14,7 @@ import {
   SeloSituacao,
 } from './apresentacao'
 import { PagamentoParcela } from './pagamento-parcela'
+import { BotaoCobrarParcelaPix, CobrancasParcelasPix } from './cobrar-parcela-pix'
 
 const SITUACOES = [
   { valor: 'abertas', rotulo: 'Em aberto' },
@@ -49,7 +50,8 @@ export async function ListaParcelas({
   tipo: TipoTitulo
   parametros: Record<string, string | string[] | undefined>
 }) {
-  const { supabase, tenantId } = await exigirModulo('financeiro')
+  const { supabase, tenantId, modulos } = await exigirModulo('financeiro')
+  const pixAtivo = tipo === 'receber' && modulos.has('bancos')
   const hoje = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Porto_Velho' })
   const validacao = validar(esquemaFiltroParcelas, { ...parametros, tipo })
   const filtro: FiltroParcelas = validacao.ok ? validacao.dados : { tipo, situacao: 'abertas' }
@@ -93,7 +95,7 @@ export async function ListaParcelas({
     SITUACOES.find((situacao) => situacao.valor === parametros.situacao)?.valor ?? 'abertas'
 
   return (
-    <>
+    <CobrancasParcelasPix>
       <header className="flex flex-wrap items-end justify-between gap-5 border-b border-areia pb-6">
         <div className="min-w-0">
           <p className="mb-2 text-xs font-bold tracking-[0.16em] text-carvao uppercase">
@@ -308,7 +310,7 @@ export async function ListaParcelas({
                   <span>Conta e parcela</span>
                   <span>Vencimento</span>
                   <span>Valores</span>
-                  <span className="w-28">Ação</span>
+                  <span className={pixAtivo ? 'w-40' : 'w-28'}>Ação</span>
                 </div>
                 <ul className="divide-y divide-areia">
                   {parcelas.map((parcela) => {
@@ -378,7 +380,7 @@ export async function ListaParcelas({
                             </p>
                           )}
                         </div>
-                        <div className="min-w-0 xl:w-28">
+                        <div className={`min-w-0 space-y-2 ${pixAtivo ? 'xl:w-40' : 'xl:w-28'}`}>
                           {aberta ? (
                             <PagamentoParcela
                               parcela={parcela}
@@ -395,6 +397,7 @@ export async function ListaParcelas({
                               Ver conta
                             </Link>
                           )}
+                          {aberta && pixAtivo && <BotaoCobrarParcelaPix parcela={parcela} />}
                         </div>
                       </li>
                     )
@@ -412,6 +415,6 @@ export async function ListaParcelas({
           </section>
         </>
       )}
-    </>
+    </CobrancasParcelasPix>
   )
 }

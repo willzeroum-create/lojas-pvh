@@ -1,12 +1,15 @@
 'use client'
 
-import { Check, Minus, Plus, Printer, Search, ShoppingBasket, Trash2 } from 'lucide-react'
+import { Check, Minus, Plus, Printer, QrCode, Search, ShoppingBasket, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { venderAction } from '@/app/painel/caixa/actions'
+import { gerarPixAction } from '@/app/painel/pix/actions'
+import { QrPix } from '@/app/painel/pix/_components/qr-pix'
 import { useAprovacaoGerente } from '@/components/ui/aprovacao-gerente'
 import type { ProdutoPdv, VendaDoCaixa, VendaRegistada } from '@/lib/dados/pdv'
+import type { CobrancaPix } from '@/lib/dados/pix'
 import { FORMAS_RECEBIMENTO, ROTULO_FORMA } from '@/lib/dominio/caixa'
 import { formatarBRL } from '@/lib/dominio/moeda'
 import {
@@ -52,16 +55,19 @@ export function FrenteDeCaixa({
   vendas,
   lojaNome,
   operador,
+  pixAtivo = false,
 }: {
   produtos: ProdutoPdv[]
   vendas: VendaDoCaixa[]
   lojaNome: string
   operador: string
+  pixAtivo?: boolean
 }) {
   const router = useRouter()
   const { solicitar, dialogo } = useAprovacaoGerente()
   const buscaRef = useRef<HTMLInputElement>(null)
   const sucessoRef = useRef<HTMLHeadingElement>(null)
+  const painelQrRef = useRef<HTMLElement>(null)
   const trava = useRef(false)
   const sequencia = useRef(0)
   const [pendente, iniciar] = useTransition()
@@ -81,6 +87,10 @@ export function FrenteDeCaixa({
   const [observacoes, definirObservacoes] = useState('')
   const [recibo, definirRecibo] = useState<Recibo | null>(null)
   const [incerto, definirIncerto] = useState(false)
+  const [cobrancaPix, definirCobrancaPix] = useState<CobrancaPix | null>(null)
+  const [gerandoPix, iniciarPix] = useTransition()
+  const travaPix = useRef(false)
+  const pixConfirmado = useRef(false)
 
   const itens = linhas.map((linha) => ({
     produtoId: linha.produto.id,
@@ -116,6 +126,13 @@ export function FrenteDeCaixa({
   const pagamentos = recebimentos.map(({ forma, valor }) => ({ forma, valor: numero(valor) }))
   const pagamentoInvalido = pagamentos.some(({ valor }) => !Number.isFinite(valor) || valor <= 0)
   const calculo = calcularVenda(itens, descontoGeral, pagamentos)
+  const valorPix =
+    pagamentos
+      .filter((pagamento) => pagamento.forma === 'pix')
+      .reduce((soma, pagamento) => soma + Math.round(pagamento.valor * 100), 0) / 100
+  const pixEmCurso = cobrancaPix?.estado === 'pendente'
+  const pixRecebido = cobrancaPix?.estado === 'pago'
+  const pagamentoTravado = gerandoPix || pixEmCurso
   const podeConfirmar =
     !incerto &&
     total !== null &&
@@ -145,7 +162,8 @@ export function FrenteDeCaixa({
     buscaRef.current?.select()
   }
   function limparPagamentos() {
-    definirRecebimentos([])
+    // Um Pix confirmado continua vinculado ao rascunho durante correções da venda.
+    definirRecebimentos((atuais) => (pixRecebido ? atuais.filter((item) => item.forma === 'pix') : []))
     definirErro('')
   }
   function alterarLinha(id: string, alteracao: Partial<Omit<Linha, 'produto'>>) {
@@ -275,6 +293,8 @@ export function FrenteDeCaixa({
     definirPagando(true)
   }
   function novaVenda() {
+    definirCobrancaPix(null)
+    pixConfirmado.current = false
     definirRecibo(null)
     definirLinhas([])
     definirSelecionado(null)
@@ -289,6 +309,7 @@ export function FrenteDeCaixa({
     requestAnimationFrame(focarBusca)
   }
   function adicionarForma(forma: FormaRecebimento) {
+    if (pixRecebido && forma === 'pix') return
     if (recebimentos.length >= 6) return
     const falta = !recebimentos.length
       ? (total ?? 0)
@@ -304,7 +325,42 @@ export function FrenteDeCaixa({
       campo?.select()
     })
   }
-  function confirmarVenda() {
+  function gerarPix() {
+    if (
+      travaPix.current ||
+      pagamentoTravado ||
+      pixRecebido ||
+      !podeConfirmar ||
+      !Number.isFinite(valorPix) ||
+      valorPix <= 0
+    )
+      return
+    travaPix.current = true
+    definirErro('')
+    iniciarPix(async () => {
+      try {
+        const resposta = await gerarPixAction({
+          valor: valorPix,
+          descricao: `Venda no balcão · ${lojaNome}`.slice(0, 140),
+          origem: 'pdv',
+        })
+        if (!resposta.ok) {
+          definirErro(resposta.erro)
+          return
+        }
+        pixConfirmado.current = false
+        definirCobrancaPix(resposta.cobranca)
+      } catch {
+        definirErro(
+          'Não foi possível confirmar a geração. Confira as cobranças na tela Pix antes de tentar novamente.',
+        )
+      } finally {
+        travaPix.current = false
+      }
+    })
+  }
+  function confirmarVenda(pixAcabouDePagar = false) {
+    if (gerandoPix || (pixEmCurso && !pixAcabouDePagar)) return
     if (trava.current || !podeConfirmar || !calculo.ok || !resumo?.ok) return
     const entrada = {
       itens: itens.map(({ produtoId, quantidade, desconto: descontoItem }) => ({
@@ -375,6 +431,14 @@ export function FrenteDeCaixa({
     if (recibo) sucessoRef.current?.focus()
   }, [recibo])
   useEffect(() => {
+    if (!cobrancaPix?.id || !pagando) return
+    const quadro = requestAnimationFrame(() => {
+      painelQrRef.current?.focus({ preventScroll: true })
+      painelQrRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
+    })
+    return () => cancelAnimationFrame(quadro)
+  }, [cobrancaPix?.id, pagando])
+  useEffect(() => {
     if (!linhas.length || recibo) return
     const avisarSaida = (evento: BeforeUnloadEvent) => {
       evento.preventDefault()
@@ -390,7 +454,8 @@ export function FrenteDeCaixa({
         evento.ctrlKey ||
         evento.altKey ||
         evento.metaKey ||
-        pendente
+        pendente ||
+        pagamentoTravado
       )
         return
       if (document.querySelector('dialog[open]')) return
@@ -413,7 +478,7 @@ export function FrenteDeCaixa({
           definirBusca('')
           definirErro('')
           focarBusca()
-        } else if (linhas.length) definirLimpando(true)
+        } else if (linhas.length && !pixRecebido) definirLimpando(true)
         return
       }
       if (
@@ -444,6 +509,24 @@ export function FrenteDeCaixa({
       <p role="status" className="sr-only">
         {aviso}
       </p>
+      {pixRecebido && !recibo && (
+        <section
+          role="status"
+          className="space-y-3 rounded-xl border border-verde/30 bg-verde-clara p-4 text-[#176b3a]"
+        >
+          <p className="font-bold">
+            Pix de {formatarBRL(cobrancaPix.valor)} recebido · conclua o registro da venda
+          </p>
+          <p className="text-sm">
+            Se precisar corrigir o carrinho, o valor já recebido será mantido. Não cobre este Pix novamente.
+          </p>
+          {!pagando && (
+            <button type="button" className="pdv-botao" onClick={abrirPagamento}>
+              Retomar registro da venda
+            </button>
+          )}
+        </section>
+      )}
       {recibo ? (
         <section
           className="pdv-sucesso rounded-xl border border-areia bg-branco p-5 sm:p-8"
@@ -497,7 +580,7 @@ export function FrenteDeCaixa({
               <kbd>Tab</kbd> Navegar · <kbd>Enter</kbd> Confirmar botão
             </span>
           </div>
-          <div className="pdv-postos">
+          <div className="pdv-postos" inert={pagamentoTravado || undefined}>
             <section className="min-w-0" aria-label="Produtos">
               <form
                 onSubmit={(evento) => {
@@ -618,7 +701,7 @@ export function FrenteDeCaixa({
                 </h2>
                 <button
                   type="button"
-                  disabled={!linhas.length}
+                  disabled={!linhas.length || pixRecebido}
                   onClick={() => definirLimpando(true)}
                   className="pdv-icone"
                   aria-label="Limpar venda"
@@ -907,7 +990,7 @@ export function FrenteDeCaixa({
       {pagando && (
         <DialogoPdv
           titulo="Receber pagamento"
-          ocupado={pendente}
+          ocupado={pendente || pagamentoTravado}
           fechar={() => {
             definirPagando(false)
             definirErro('')
@@ -919,7 +1002,7 @@ export function FrenteDeCaixa({
               confirmarVenda()
             }}
           >
-            <fieldset disabled={pendente} className="min-w-0 space-y-5">
+            <fieldset disabled={pendente || gerandoPix} className="min-w-0 space-y-5">
               <div className="flex flex-wrap items-end justify-between gap-3 border-b border-areia pb-4">
                 <p className="text-sm font-bold">Total a receber</p>
                 <p className="text-4xl font-extrabold tabular-nums" aria-live="polite">
@@ -934,7 +1017,9 @@ export function FrenteDeCaixa({
                       key={forma}
                       data-foco-inicial={indice === 0 ? true : undefined}
                       type="button"
-                      disabled={recebimentos.length >= 6}
+                      disabled={
+                        recebimentos.length >= 6 || pagamentoTravado || (pixRecebido && forma === 'pix')
+                      }
                       onClick={() => adicionarForma(forma)}
                       className="pdv-botao justify-start text-left"
                     >
@@ -962,6 +1047,7 @@ export function FrenteDeCaixa({
                           id={`pagamento-${recebimento.chave}`}
                           inputMode="decimal"
                           required
+                          disabled={pagamentoTravado || (pixRecebido && recebimento.forma === 'pix')}
                           value={recebimento.valor}
                           onChange={(evento) => {
                             definirRecebimentos((atuais) =>
@@ -982,6 +1068,7 @@ export function FrenteDeCaixa({
                       <button
                         type="button"
                         className="pdv-icone border border-areia"
+                        disabled={pagamentoTravado || (pixRecebido && recebimento.forma === 'pix')}
                         onClick={() =>
                           definirRecebimentos((atuais) =>
                             atuais.filter((item) => item.chave !== recebimento.chave),
@@ -1015,7 +1102,9 @@ export function FrenteDeCaixa({
                     </p>
                     <p className="mt-1 text-sm">
                       {podeConfirmar
-                        ? 'Pagamento completo. Pode confirmar a venda.'
+                        ? pixEmCurso
+                          ? 'Aguardando a confirmação do Pix abaixo.'
+                          : 'Valores completos. Confira o recebimento antes de confirmar.'
                         : 'Escolha uma forma de pagamento.'}
                     </p>
                   </>
@@ -1039,6 +1128,7 @@ export function FrenteDeCaixa({
                     Nome do cliente
                     <input
                       id="cliente-pdv"
+                      disabled={pagamentoTravado}
                       value={cliente}
                       onChange={(evento) => definirCliente(evento.target.value)}
                       maxLength={120}
@@ -1050,6 +1140,7 @@ export function FrenteDeCaixa({
                     Observação da venda
                     <textarea
                       id="observacoes-pdv"
+                      disabled={pagamentoTravado}
                       value={observacoes}
                       onChange={(evento) => definirObservacoes(evento.target.value)}
                       maxLength={300}
@@ -1059,10 +1150,88 @@ export function FrenteDeCaixa({
                   </label>
                 </div>
               </details>
+              {pixAtivo && valorPix > 0 && (
+                <section
+                  ref={painelQrRef}
+                  tabIndex={-1}
+                  className="pix-area scroll-mt-4 space-y-3 rounded-xl border border-areia bg-branco p-3 sm:p-4"
+                  aria-label="Recebimento por Pix"
+                >
+                  {cobrancaPix ? (
+                    <>
+                      <QrPix
+                        cobranca={cobrancaPix}
+                        onAtualizar={definirCobrancaPix}
+                        onCancelar={() => definirCobrancaPix(null)}
+                        onPago={() => {
+                          if (pixConfirmado.current) return
+                          pixConfirmado.current = true
+                          confirmarVenda(true)
+                        }}
+                      />
+                      {pixRecebido && (
+                        <p role="status" className="text-sm font-semibold text-[#176b3a]">
+                          {pendente
+                            ? 'Registrando a venda…'
+                            : 'Pix recebido. Se a venda ainda não foi registrada, conclua abaixo.'}
+                        </p>
+                      )}
+                      {!pixEmCurso && !pixRecebido && (
+                        <button
+                          type="button"
+                          className="pdv-botao w-full"
+                          onClick={() => definirCobrancaPix(null)}
+                        >
+                          Voltar ao pagamento
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 font-bold">
+                        <QrCode aria-hidden className="size-5" /> Pix no balcão
+                      </div>
+                      <p className="text-sm text-carvao">
+                        Gere o QR de {formatarBRL(valorPix)}. Quando o Pix cair, a venda será registrada.
+                      </p>
+                      {pagamentos.some((pagamento) => pagamento.forma !== 'pix') && (
+                        <p className="text-sm font-semibold text-carvao">
+                          Confira os outros recebimentos antes de gerar o QR.
+                        </p>
+                      )}
+                      <button
+                        type="button"
+                        className="pdv-botao pdv-primario w-full"
+                        disabled={!podeConfirmar || gerandoPix}
+                        onClick={gerarPix}
+                      >
+                        {gerandoPix ? 'Gerando QR Pix…' : 'Gerar QR Pix'}
+                      </button>
+                      {!podeConfirmar && (
+                        <p className="text-sm text-carvao">
+                          Complete os valores do pagamento para gerar o QR.
+                        </p>
+                      )}
+                    </>
+                  )}
+                </section>
+              )}
               {erro && (
                 <p role="alert" className="pdv-erro">
                   {erro}
                 </p>
+              )}
+              {pixRecebido && !pendente && !incerto && (
+                <button
+                  type="button"
+                  className="pdv-botao w-full"
+                  onClick={() => {
+                    definirPagando(false)
+                    router.refresh()
+                  }}
+                >
+                  Corrigir carrinho · manter Pix recebido
+                </button>
               )}
               {incerto && (
                 <button
@@ -1081,10 +1250,16 @@ export function FrenteDeCaixa({
               )}
               <button
                 type="submit"
-                disabled={!podeConfirmar || pendente}
+                disabled={!podeConfirmar || pendente || gerandoPix || pixEmCurso}
                 className="pdv-botao pdv-primario min-h-14 w-full text-base"
               >
-                {pendente ? 'Registrando venda…' : 'Confirmar venda'}
+                {pendente
+                  ? 'Registrando venda…'
+                  : pixRecebido
+                    ? 'Concluir registro da venda'
+                    : pixAtivo && valorPix > 0
+                      ? 'Recebi de outro jeito'
+                      : 'Confirmar venda'}
               </button>
             </fieldset>
           </form>

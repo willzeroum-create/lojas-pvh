@@ -10,7 +10,7 @@ import { FrenteDeCaixa } from './_components/frente-de-caixa'
 export const metadata: Metadata = { title: 'Frente de caixa' }
 
 export default async function PaginaPdv() {
-  const { supabase, tenantId, sessao } = await exigirModulo('pdv')
+  const { supabase, tenantId, sessao, modulos } = await exigirModulo('pdv')
   await exigirModulo('caixa')
   const loja = await obterLojaPrincipal(supabase, tenantId)
   if (!loja)
@@ -44,6 +44,7 @@ export default async function PaginaPdv() {
       vendas={vendas}
       lojaNome={loja.nome}
       operador={sessao.operador?.nome ?? sessao.email ?? 'Operador'}
+      pixAtivo={modulos.has('bancos')}
     />
   )
 }
