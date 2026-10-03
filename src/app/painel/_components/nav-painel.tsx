@@ -21,6 +21,7 @@ import {
   type LucideIcon,
   QrCode,
   Clock,
+  Bike,
   Gift,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -43,6 +44,7 @@ const ICONES: Record<IconeModulo, LucideIcon> = {
   ponto: Clock,
   relatorios: BarChart3,
   fidelidade: Gift,
+  delivery: Bike,
   comandas: Armchair,
   cozinha: ChefHat,
   loja: Store,

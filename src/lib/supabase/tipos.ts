@@ -628,6 +628,45 @@ export type FidelidadeMovimentoLinha = {
   criado_em: string
 }
 
+export type EstadoEntrega = 'aguardando' | 'em_rota' | 'entregue' | 'nao_entregue'
+
+export type DeliveryZonaLinha = {
+  id: string
+  tenant_id: string
+  nome: string
+  chave: string
+  taxa: number
+  tempo_min: number
+  ativo: boolean
+  criado_em: string
+}
+
+export type EntregadorLinha = {
+  id: string
+  tenant_id: string
+  nome: string
+  whatsapp: string | null
+  repasse: number
+  ativo: boolean
+  token_acesso: string
+  criado_em: string
+}
+
+export type EntregaLinha = {
+  id: string
+  tenant_id: string
+  pedido_id: string
+  entregador_id: string | null
+  estado: EstadoEntrega
+  codigo: string
+  repasse: number
+  saiu_em: string | null
+  entregue_em: string | null
+  ocorrencia: string | null
+  acertado_em: string | null
+  criado_em: string
+}
+
 export type AuditoriaLinha = {
   id: string
   tenant_id: string
@@ -1413,6 +1452,12 @@ export type Database = {
       estoque_vinculos: Tabela<EstoqueVinculoLinha, 'produto_id' | 'insumo_id' | 'fator'>
       inventarios: Tabela<InventarioLinha, 'id' | 'descricao' | 'autor_nome' | 'itens' | 'ajustes' | 'criado_em'>
       equipe_membros: Tabela<EquipeMembroLinha, 'id' | 'ativo' | 'tentativas_falhas' | 'bloqueado_ate' | 'criado_em' | 'registra_ponto' | 'jornada_minutos'>
+      delivery_zonas: Tabela<DeliveryZonaLinha, 'id' | 'taxa' | 'tempo_min' | 'ativo' | 'criado_em'>
+      entregadores: Tabela<EntregadorLinha, 'id' | 'whatsapp' | 'repasse' | 'ativo' | 'token_acesso' | 'criado_em'>
+      entregas: Tabela<
+        EntregaLinha,
+        'id' | 'entregador_id' | 'estado' | 'codigo' | 'repasse' | 'saiu_em' | 'entregue_em' | 'ocorrencia' | 'acertado_em' | 'criado_em'
+      >
       fidelidade_config: Tabela<FidelidadeConfigLinha, 'ativo' | 'percentual' | 'validade_dias' | 'resgate_minimo' | 'limite_resgate_pct' | 'atualizado_em'>
       fidelidade_movimentos: Tabela<FidelidadeMovimentoLinha, 'id' | 'pedido_id' | 'expira_em' | 'autor' | 'motivo' | 'criado_em'>
       ponto_batidas: Tabela<
@@ -1476,6 +1521,9 @@ export type Database = {
       financeiro_padrao: { Args: { p_tenant: string }; Returns: undefined }
       registar_venda_balcao: { Args: { p: Json }; Returns: PedidoLinha }
       registar_venda_com_cashback: { Args: { p: Json }; Returns: PedidoLinha }
+      despachar_entrega: { Args: { p_tenant: string; p_entrega: string; p_entregador: string }; Returns: undefined }
+      concluir_entrega: { Args: { p_tenant: string; p_entrega: string; p_entregue: boolean; p_ocorrencia: string | null }; Returns: undefined }
+      acertar_entregador: { Args: { p_tenant: string; p_entregador: string }; Returns: Json }
       saldo_cashback: { Args: { p_tenant: string; p_pessoa: string; p_dia?: string | null; p_sem_pedido?: string | null }; Returns: number }
       abrir_comanda: {
         Args: { p_tenant: string; p_loja: string; p_mesa: string | null; p_identificador: string | null; p_pessoas: number; p_garcom: string }
@@ -1520,6 +1568,7 @@ export type Database = {
       papel_equipe: PapelEquipe
       estado_cobranca_pix: EstadoCobrancaPix
       tipo_batida: TipoBatida
+      estado_entrega: EstadoEntrega
       estado_integracao: EstadoIntegracao
       ambiente_integracao: AmbienteIntegracao
       tipo_documento_fiscal: TipoDocumentoFiscal

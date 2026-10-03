@@ -81,6 +81,26 @@ describe('montarMensagemPedido', () => {
     expect(msg).toContain('🏪 Retirada no balcão')
     expect(msg).not.toContain('Subtotal')
     expect(msg).toContain('💳 Pagamento: Pix')
+    expect(msg).not.toContain('Acompanhe')
+  })
+
+  it('com delivery próprio, termina com o link de acompanhamento', () => {
+    const msg = montarMensagemPedido({
+      numero: 4,
+      nomeFantasia: 'Açaí do Norte',
+      clienteNome: 'Ana',
+      itens: [{ produtoId: 'p', nome: 'Açaí 500 ml', quantidade: 1, precoUnitario: 15, opcoes: [], total: 15 }],
+      subtotal: 15,
+      taxaEntrega: 5,
+      total: 20,
+      tipoEntrega: 'entrega',
+      endereco: { rua: 'Rua A', numero: '10', bairro: 'Centro' },
+      formaPagamento: 'pix',
+      trocoPara: null,
+      observacoes: null,
+      linkAcompanhamento: 'https://exemplo.com/entrega/0123456789abcdef',
+    })
+    expect(msg.split('\n').slice(-2)).toEqual(['', 'Acompanhe a entrega: https://exemplo.com/entrega/0123456789abcdef'])
   })
 })
 

@@ -32,7 +32,7 @@ export type GrupoModulo = keyof typeof GRUPOS_MODULO
 export type Maturidade = 'funcional' | 'pre_funcional' | 'planejado'
 
 /** Ícones dos separadores do painel; o componente de navegação traduz o nome. */
-export type IconeModulo = 'fiscal' | 'pix' | 'ponto' | 'relatorios' | 'fidelidade' | 'equipe' | 'estoque' | 'pdv' | 'caixa' | 'comandas' | 'cozinha' | 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
+export type IconeModulo = 'delivery' | 'fiscal' | 'pix' | 'ponto' | 'relatorios' | 'fidelidade' | 'equipe' | 'estoque' | 'pdv' | 'caixa' | 'comandas' | 'cozinha' | 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
 
 export type ModuloModelo = {
   id: string
@@ -141,10 +141,11 @@ export const MODULOS = [
   {
     id: 'delivery',
     nome: 'Delivery próprio',
-    descricao: 'Entregadores, rotas, taxas por bairro e acompanhamento.',
+    descricao: 'Taxa por bairro, entregadores com link no celular, acompanhamento para o cliente e acerto do repasse.',
     grupo: 'operacao',
-    maturidade: 'planejado',
+    maturidade: 'funcional',
     requer: ['pedidos'],
+    painel: { href: '/painel/delivery', rotulo: 'Entregas', icone: 'delivery', ordem: 12 },
   },
   {
     id: 'estoque',

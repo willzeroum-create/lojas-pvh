@@ -8,6 +8,8 @@ export const SLUGS_RESERVADOS = new Set([
   'admin',
   'painel',
   'entrar',
+  'entrega',
+  'entregador',
   'sair',
   'api',
   'app',

@@ -29,6 +29,8 @@ export type DadosMensagemPedido = {
   formaPagamento: FormaPagamento
   trocoPara: number | null
   observacoes: string | null
+  /** Link público para o cliente acompanhar a entrega (módulo Delivery). */
+  linkAcompanhamento?: string | null
 }
 
 export function montarMensagemPedido(d: DadosMensagemPedido): string {
@@ -62,6 +64,10 @@ export function montarMensagemPedido(d: DadosMensagemPedido): string {
   linhas.push(pagamento)
   linhas.push(`👤 ${d.clienteNome}`)
   if (d.observacoes) linhas.push(`📝 ${d.observacoes}`)
+  if (d.linkAcompanhamento) {
+    linhas.push('')
+    linhas.push(`Acompanhe a entrega: ${d.linkAcompanhamento}`)
+  }
 
   return linhas.join('\n')
 }

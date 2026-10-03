@@ -13,6 +13,9 @@ drop policy if exists "fotos: tenant substitui" on storage.objects;
 drop policy if exists "fotos: tenant apaga" on storage.objects;
 
 drop table if exists
+  public.entregas,
+  public.entregadores,
+  public.delivery_zonas,
   public.fidelidade_movimentos,
   public.fidelidade_config,
   public.ponto_batidas,
@@ -32,6 +35,11 @@ drop table if exists
   public.membros, public.operadores, public.tenants
   cascade;
 
+drop function if exists public.despachar_entrega(uuid, uuid, uuid);
+drop function if exists public.concluir_entrega(uuid, uuid, boolean, text);
+drop function if exists public.acertar_entregador(uuid, uuid);
+drop function if exists app.entrega_do_pedido();
+drop function if exists app.entrega_transicao();
 drop function if exists public.registar_venda_com_cashback(jsonb);
 drop function if exists app.lancar_resgate_cashback(uuid, uuid, numeric, uuid, numeric, text);
 drop function if exists app.cashback_do_pedido();
@@ -60,6 +68,7 @@ drop type if exists public.estado_comanda;
 drop type if exists public.papel_equipe;
 drop type if exists public.estado_cobranca_pix;
 drop type if exists public.tipo_batida;
+drop type if exists public.estado_entrega;
 drop type if exists public.estado_documento_fiscal;
 drop type if exists public.tipo_documento_fiscal;
 drop type if exists public.ambiente_integracao;
