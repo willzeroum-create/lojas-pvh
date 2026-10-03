@@ -29,12 +29,17 @@ export function FolhaCarrinho({ aberta, onFechar, tenant, loja, lojaAberta, cata
   const [passo, setPasso] = useState<Passo>({ nome: 'itens' })
   const [tipoEntrega, setTipoEntrega] = useState<TipoEntrega>(loja.aceitaEntrega ? 'entrega' : 'retirada')
   const [erros, setErros] = useState<string[]>([])
+  const zonas = loja.zonas ?? []
+  const [bairro, setBairro] = useState('')
+  const zona = zonas.find((z) => z.chave === bairro)
+  const porBairro = tipoEntrega === 'entrega' && zonas.length > 0
+  const regras = useMemo(() => (porBairro ? { ...loja, taxaEntrega: zona?.taxa ?? 0 } : loja), [loja, porBairro, zona])
   const [aEnviar, iniciarTransicao] = useTransition()
 
   const porId = useMemo(() => new Map(catalogo.map((p) => [p.id, p])), [catalogo])
   const calculo = useMemo(
-    () => calcularPedido(carrinho.itens, catalogo, loja, tipoEntrega),
-    [carrinho.itens, catalogo, loja, tipoEntrega],
+    () => calcularPedido(carrinho.itens, catalogo, regras, tipoEntrega),
+    [carrinho.itens, catalogo, regras, tipoEntrega],
   )
 
   const fechar = () => {
@@ -151,6 +156,25 @@ export function FolhaCarrinho({ aberta, onFechar, tenant, loja, lojaAberta, cata
             </div>
           )}
 
+          {porBairro && (
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-carvao">Seu bairro</span>
+              <select
+                value={bairro}
+                onChange={(e) => setBairro(e.target.value)}
+                className="h-12 w-full rounded-lg border border-areia bg-branco px-3.5 text-[15px] focus:border-tinta focus:ring-2 focus:ring-tinta/15 focus:outline-none"
+              >
+                <option value="">Escolha o bairro</option>
+                {zonas.map((z) => (
+                  <option key={z.chave} value={z.chave}>
+                    {z.nome} — {z.taxa > 0 ? formatarBRL(z.taxa) : 'grátis'} · até {z.tempoMin} min
+                  </option>
+                ))}
+              </select>
+              <span className="text-sm text-cinza">Não achou o seu? Escolha retirar no balcão ou chame a loja no WhatsApp.</span>
+            </label>
+          )}
+
           {calculo.ok ? (
             <dl className="space-y-1 text-sm">
               <div className="flex justify-between text-carvao">
@@ -184,7 +208,7 @@ export function FolhaCarrinho({ aberta, onFechar, tenant, loja, lojaAberta, cata
             variante="marca"
             tamanho="lg"
             cheio
-            disabled={!calculo.ok || !lojaAberta}
+            disabled={!calculo.ok || !lojaAberta || (porBairro && !zona)}
             onClick={() => setPasso({ nome: 'checkout' })}
           >
             Continuar
@@ -203,6 +227,7 @@ export function FolhaCarrinho({ aberta, onFechar, tenant, loja, lojaAberta, cata
           </button>
           <Checkout
             tipoEntrega={tipoEntrega}
+            bairroFixo={porBairro ? zona?.nome : undefined}
             total={calculo.ok ? calculo.total : 0}
             erros={erros}
             aEnviar={aEnviar}

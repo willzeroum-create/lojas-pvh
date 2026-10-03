@@ -13,7 +13,11 @@ import { NavCategorias } from './nav-categorias'
 import { useCarrinho } from './use-carrinho'
 
 export type TenantParaCarrinho = { id: string; slug: string; nome_fantasia: string; whatsapp: string }
-export type LojaParaCarrinho = RegrasLoja & { id: string }
+/** `zonas`: bairros do delivery próprio (vazio = taxa única da loja). */
+export type LojaParaCarrinho = RegrasLoja & {
+  id: string
+  zonas?: Array<{ chave: string; nome: string; taxa: number; tempoMin: number }>
+}
 
 type Props = {
   tenant: TenantParaCarrinho

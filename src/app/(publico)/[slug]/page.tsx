@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { apenasDisponiveis } from '@/lib/canais/cardapio'
 import { obterCatalogo } from '@/lib/dados/cardapio'
+import { zonasPublicas } from '@/lib/dados/delivery'
 import { obterLojaPrincipal } from '@/lib/dados/lojas'
 import { moduloLigado } from '@/lib/dados/modulos'
 import { estadoLoja } from '@/lib/dominio/horario'
@@ -36,11 +37,14 @@ export default async function PaginaPublica(props: PageProps<'/[slug]'>) {
   if (!tenant) notFound()
 
   const supabase = clienteAnonimo()
-  const [loja, catalogo, comCardapio] = await Promise.all([
+  const [loja, catalogo, comCardapio, comDelivery] = await Promise.all([
     obterLojaPrincipal(supabase, tenant.id),
     obterCatalogo(supabase, tenant.id),
     moduloLigado(supabase, tenant.id, 'cardapio'),
+    moduloLigado(supabase, tenant.id, 'delivery'),
   ])
+  // Delivery próprio com bairros: o cliente escolhe o bairro e vê a taxa dele.
+  const zonas = comDelivery ? await zonasPublicas(supabase, tenant.id) : []
 
   // Sem o módulo do cardápio (ou suspensa) a empresa continua encontrável: nome, contacto e endereço.
   if (tenant.status === 'suspenso' || !loja || !comCardapio) {
@@ -69,6 +73,7 @@ export default async function PaginaPublica(props: PageProps<'/[slug]'>) {
           pedidoMinimo: loja.pedido_minimo,
           aceitaEntrega: loja.aceita_entrega,
           aceitaRetirada: loja.aceita_retirada,
+          zonas: zonas.map((z) => ({ chave: z.chave, nome: z.nome, taxa: z.taxa, tempoMin: z.tempoMin })),
         }}
         catalogo={visivel}
         aberta={estado.aberta}

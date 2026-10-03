@@ -267,7 +267,6 @@ export async function acompanhamentoPublico(codigo: string): Promise<Acompanhame
 
 export type PainelDoEntregador = {
   entregador: { id: string; nome: string }
-  tenantId: string
   loja: string
   entregas: EntregaNoPainel[]
   hoje: { entregues: number; aAcertar: { quantidade: number; valor: number } }
@@ -302,7 +301,6 @@ export async function painelDoEntregador(token: string): Promise<PainelDoEntrega
   ])
   return {
     entregador: { id: ent.id, nome: ent.nome },
-    tenantId: ent.tenantId,
     loja: ent.loja,
     entregas: ((emRota.data ?? []) as unknown as LinhaEntrega[]).map(paraEntrega),
     hoje: {

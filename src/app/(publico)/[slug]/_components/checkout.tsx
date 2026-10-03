@@ -22,6 +22,8 @@ export type DadosCheckout = {
 
 type Props = {
   tipoEntrega: TipoEntrega
+  /** Bairro já escolhido no carrinho (delivery por bairro): mostrado, não editável. */
+  bairroFixo?: string
   total: number
   erros: string[]
   aEnviar: boolean
@@ -35,7 +37,7 @@ const PAGAMENTOS: Array<{ valor: FormaPagamento; rotulo: string }> = [
 ]
 
 /** Um ecrã só. Nome, telefone, endereço (se entrega), pagamento. Sem conta, sem senha. */
-export function Checkout({ tipoEntrega, total, erros, aEnviar, onEnviar }: Props) {
+export function Checkout({ tipoEntrega, bairroFixo, total, erros, aEnviar, onEnviar }: Props) {
   const [pagamento, setPagamento] = useState<FormaPagamento>('pix')
 
   const submeter = (e: FormEvent<HTMLFormElement>) => {
@@ -87,7 +89,11 @@ export function Checkout({ tipoEntrega, total, erros, aEnviar, onEnviar }: Props
             <Campo rotulo="Número" name="numero" inputMode="numeric" required />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Campo rotulo="Bairro" name="bairro" autoComplete="address-level3" />
+            {bairroFixo ? (
+              <Campo rotulo="Bairro" name="bairro" value={bairroFixo} readOnly />
+            ) : (
+              <Campo rotulo="Bairro" name="bairro" autoComplete="address-level3" />
+            )}
             <Campo rotulo="Complemento" name="complemento" placeholder="Apto, bloco…" />
           </div>
           <Campo
