@@ -13,6 +13,8 @@ drop policy if exists "fotos: tenant substitui" on storage.objects;
 drop policy if exists "fotos: tenant apaga" on storage.objects;
 
 drop table if exists
+  public.pagamentos_pedido, public.caixa_conferencias, public.caixa_movimentos, public.caixa_sessoes,
+  public.baixas, public.parcelas, public.titulos, public.categorias_financeiras, public.carteiras,
   public.consentimentos, public.pessoa_enderecos, public.pessoas,
   public.tenant_modulos,
   public.arquivos, public.notas_internas, public.cadeia_registos, public.cadeia_etapas,
@@ -25,8 +27,18 @@ drop table if exists
 drop function if exists public.criar_pedido(jsonb);
 drop function if exists public.anonimizar_pedidos(integer);
 drop function if exists public.anonimizar_pessoa(uuid, uuid);
+drop function if exists public.financeiro_padrao(uuid);
+drop function if exists public.registar_venda_balcao(jsonb);
+drop function if exists public.cancelar_venda_balcao(uuid, uuid, text, text);
 
 drop type if exists public.tipo_pessoa;
+drop type if exists public.tipo_movimento_caixa;
+drop type if exists public.estado_caixa;
+drop type if exists public.forma_recebimento;
+drop type if exists public.linha_resultado;
+drop type if exists public.tipo_carteira;
+drop type if exists public.estado_parcela;
+drop type if exists public.tipo_titulo;
 drop type if exists public.cadeia_estado;
 drop type if exists public.etapa_onboarding;
 drop type if exists public.forma_pagamento;

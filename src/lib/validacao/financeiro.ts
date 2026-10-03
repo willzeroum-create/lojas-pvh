@@ -20,7 +20,7 @@ export const esquemaTitulo = z
     pagoEm: z.preprocess(vazio, data.optional()),
     carteiraId: z.preprocess(vazio, uuid.optional()),
     forma: z.preprocess(vazio, z.enum(FORMAS).optional()),
-    origem: z.enum(['manual', 'pedido', 'compra', 'recorrente']).optional(),
+    origem: z.enum(['manual', 'pedido', 'compra', 'recorrente', 'caixa']).optional(),
     origemId: uuid.optional(),
   })
   .refine((t) => !t.pagoEm || t.carteiraId, { message: 'Escolha a carteira do pagamento', path: ['carteiraId'] })

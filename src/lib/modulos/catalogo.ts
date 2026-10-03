@@ -32,7 +32,7 @@ export type GrupoModulo = keyof typeof GRUPOS_MODULO
 export type Maturidade = 'funcional' | 'pre_funcional' | 'planejado'
 
 /** Ícones dos separadores do painel; o componente de navegação traduz o nome. */
-export type IconeModulo = 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
+export type IconeModulo = 'pdv' | 'caixa' | 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
 
 export type ModuloModelo = {
   id: string
@@ -106,17 +106,19 @@ export const MODULOS = [
   {
     id: 'pdv',
     nome: 'PDV / Frente de caixa',
-    descricao: 'Venda no balcão com leitor, balança e várias formas de pagamento.',
+    descricao: 'Venda no balcão por busca, leitor ou etiqueta da balança, com pagamento dividido e troco.',
     grupo: 'vendas',
-    maturidade: 'planejado',
+    maturidade: 'funcional',
     requer: ['caixa'],
+    painel: { href: '/painel/pdv', rotulo: 'PDV', icone: 'pdv', ordem: 5 },
   },
   {
     id: 'caixa',
     nome: 'Caixa',
-    descricao: 'Abertura, fechamento, sangria, suprimento e conferência.',
+    descricao: 'Abertura com fundo de troco, sangria, suprimento e fechamento cego com conferência.',
     grupo: 'financeiro',
-    maturidade: 'planejado',
+    maturidade: 'funcional',
+    painel: { href: '/painel/caixa', rotulo: 'Caixa', icone: 'caixa', ordem: 8 },
   },
   {
     id: 'comandas',

@@ -97,6 +97,8 @@ export type ProdutoLinha = {
   preco_promocional: number | null
   foto_url: string | null
   sku: string | null
+  codigo_barras: string | null
+  vendido_por_peso: boolean
   disponivel: boolean
   tempo_preparo_min: number | null
   ordem: number
@@ -139,11 +141,14 @@ export type PedidoLinha = {
   endereco: Json | null
   observacoes: string | null
   subtotal: number
+  desconto: number
   taxa_entrega: number
   total: number
   forma_pagamento: FormaPagamento
   troco_para: number | null
   status: PedidoStatus
+  cancelado_motivo: string | null
+  caixa_sessao_id: string | null
   anonimizado_em: string | null
   criado_em: string
   atualizado_em: string
@@ -157,6 +162,7 @@ export type ItemPedidoLinha = {
   nome: string
   quantidade: number
   preco_unitario: number
+  desconto: number
   opcoes: Json
   observacao: string | null
   total: number
@@ -335,7 +341,7 @@ export type TituloLinha = {
   descricao: string
   pessoa_id: string | null
   categoria_id: string
-  origem: 'manual' | 'pedido' | 'compra' | 'recorrente'
+  origem: 'manual' | 'pedido' | 'compra' | 'recorrente' | 'caixa'
   origem_id: string | null
   competencia: string
   documento: string | null
@@ -369,6 +375,57 @@ export type BaixaLinha = {
   forma: 'dinheiro' | 'pix' | 'cartao_debito' | 'cartao_credito' | 'boleto' | 'transferencia' | 'outro'
   observacao: string | null
   estornada_em: string | null
+  criado_em: string
+}
+
+export type FormaRecebimento = 'dinheiro' | 'pix' | 'cartao_debito' | 'cartao_credito' | 'outro'
+export type EstadoCaixa = 'aberta' | 'fechada' | 'conferida'
+export type TipoMovimentoCaixa = 'venda' | 'suprimento' | 'sangria' | 'estorno'
+
+export type CaixaSessaoLinha = {
+  id: string
+  tenant_id: string
+  loja_id: string
+  operador_id: string | null
+  operador_nome: string
+  fundo_troco: number
+  estado: EstadoCaixa
+  aberta_em: string
+  fechada_em: string | null
+  justificativa: string | null
+  conferida_por: string | null
+  conferida_em: string | null
+}
+
+export type CaixaMovimentoLinha = {
+  id: string
+  tenant_id: string
+  sessao_id: string
+  tipo: TipoMovimentoCaixa
+  forma: FormaRecebimento
+  valor: number
+  motivo: string | null
+  pedido_id: string | null
+  autor_nome: string | null
+  criado_em: string
+}
+
+export type CaixaConferenciaLinha = {
+  tenant_id: string
+  sessao_id: string
+  forma: FormaRecebimento
+  esperado: number
+  informado: number
+  diferenca: number
+}
+
+export type PagamentoPedidoLinha = {
+  id: string
+  tenant_id: string
+  pedido_id: string
+  forma: FormaRecebimento
+  valor: number
+  troco: number
   criado_em: string
 }
 
@@ -450,6 +507,8 @@ export type Database = {
         | 'preco_promocional'
         | 'foto_url'
         | 'sku'
+        | 'codigo_barras'
+        | 'vendido_por_peso'
         | 'disponivel'
         | 'tempo_preparo_min'
         | 'ordem'
@@ -525,6 +584,9 @@ export type Database = {
         | 'taxa_entrega'
         | 'troco_para'
         | 'status'
+        | 'desconto'
+        | 'cancelado_motivo'
+        | 'caixa_sessao_id'
         | 'anonimizado_em'
         | 'criado_em'
         | 'atualizado_em',
@@ -547,7 +609,7 @@ export type Database = {
       >
       itens_pedido: Tabela<
         ItemPedidoLinha,
-        'id' | 'produto_id' | 'opcoes' | 'observacao',
+        'id' | 'produto_id' | 'opcoes' | 'observacao' | 'desconto',
         [
           {
             foreignKeyName: 'itens_pedido_tenant_id_fkey'
@@ -839,6 +901,65 @@ export type Database = {
           },
         ]
       >
+      caixa_sessoes: Tabela<
+        CaixaSessaoLinha,
+        'id' | 'operador_id' | 'fundo_troco' | 'estado' | 'aberta_em' | 'fechada_em' | 'justificativa' | 'conferida_por' | 'conferida_em',
+        [
+          {
+            foreignKeyName: 'caixa_sessoes_loja_id_tenant_id_fkey'
+            columns: ['loja_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'lojas'
+            referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
+      caixa_movimentos: Tabela<
+        CaixaMovimentoLinha,
+        'id' | 'forma' | 'motivo' | 'pedido_id' | 'autor_nome' | 'criado_em',
+        [
+          {
+            foreignKeyName: 'caixa_movimentos_sessao_id_tenant_id_fkey'
+            columns: ['sessao_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'caixa_sessoes'
+            referencedColumns: ['id', 'tenant_id']
+          },
+          {
+            foreignKeyName: 'caixa_movimentos_pedido_id_tenant_id_fkey'
+            columns: ['pedido_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'pedidos'
+            referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
+      caixa_conferencias: Tabela<
+        CaixaConferenciaLinha,
+        'diferenca',
+        [
+          {
+            foreignKeyName: 'caixa_conferencias_sessao_id_tenant_id_fkey'
+            columns: ['sessao_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'caixa_sessoes'
+            referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
+      pagamentos_pedido: Tabela<
+        PagamentoPedidoLinha,
+        'id' | 'troco' | 'criado_em',
+        [
+          {
+            foreignKeyName: 'pagamentos_pedido_pedido_id_tenant_id_fkey'
+            columns: ['pedido_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'pedidos'
+            referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
       tenant_modulos: Tabela<
         TenantModuloLinha,
         'ativo' | 'configuracao' | 'ativado_em' | 'criado_em' | 'atualizado_em',
@@ -859,6 +980,11 @@ export type Database = {
       anonimizar_pedidos: { Args: { dias: number }; Returns: number }
       anonimizar_pessoa: { Args: { p_tenant: string; p_pessoa: string }; Returns: undefined }
       financeiro_padrao: { Args: { p_tenant: string }; Returns: undefined }
+      registar_venda_balcao: { Args: { p: Json }; Returns: PedidoLinha }
+      cancelar_venda_balcao: {
+        Args: { p_tenant: string; p_pedido: string; p_motivo: string; p_autor: string }
+        Returns: undefined
+      }
     }
     Enums: {
       tenant_status: TenantStatus
@@ -873,6 +999,9 @@ export type Database = {
       estado_parcela: EstadoParcela
       tipo_carteira: TipoCarteira
       linha_resultado: LinhaResultado
+      forma_recebimento: FormaRecebimento
+      estado_caixa: EstadoCaixa
+      tipo_movimento_caixa: TipoMovimentoCaixa
     }
     CompositeTypes: { [_ in never]: never }
   }

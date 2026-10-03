@@ -2,6 +2,8 @@
 
 import {
   BarChart3,
+  Landmark,
+  ScanBarcode,
   ChevronRight,
   ClipboardList,
   MoreHorizontal,
@@ -24,6 +26,8 @@ const ICONES: Record<IconeModulo, LucideIcon> = {
   cardapio: UtensilsCrossed,
   clientes: Users,
   financeiro: Wallet,
+  pdv: ScanBarcode,
+  caixa: Landmark,
   loja: Store,
   resumo: BarChart3,
   conta: UserRound,

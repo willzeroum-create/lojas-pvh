@@ -521,7 +521,7 @@ describe('função criar_pedido (servidor)', () => {
 
     const itens = await c.bd.consultar<{ nome: string; quantidade: number }>(
       { tipo: 'utilizador', id: c.donoB },
-      'select nome, quantidade from public.itens_pedido where pedido_id = $1',
+      'select nome, quantidade::float8 as quantidade from public.itens_pedido where pedido_id = $1',
       [criado!.id],
     )
     expect(itens).toEqual([{ nome: 'Produto B', quantidade: 2 }])
