@@ -17,7 +17,7 @@ const PASTA_MIGRACOES = path.resolve(__dirname, '../../supabase/migrations')
 const PASTA_SEED = path.resolve(__dirname, '../../supabase/seed.sql')
 
 /** Migrações que dependem de esquemas só existentes no Supabase. */
-const IGNORAR_EM_PGLITE = ['0003_storage.sql', '0007_arquivos_storage.sql']
+const IGNORAR_EM_PGLITE = ['0003_storage.sql', '0007_arquivos_storage.sql', '0020_ponto_storage.sql']
 
 const SHIM_SUPABASE = `
   create schema auth;

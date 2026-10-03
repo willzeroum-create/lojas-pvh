@@ -20,6 +20,7 @@ import {
   X,
   type LucideIcon,
   QrCode,
+  Clock,
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -38,6 +39,7 @@ const ICONES: Record<IconeModulo, LucideIcon> = {
   equipe: IdCard,
   fiscal: FileText,
   pix: QrCode,
+  ponto: Clock,
   comandas: Armchair,
   cozinha: ChefHat,
   loja: Store,

@@ -72,7 +72,8 @@ export async function salvarFiscalProdutoAction(entrada: unknown): Promise<Resul
   try {
     const { produtoId, ...d } = r.dados
     await salvarFiscalProduto(ctx.supabase, ctx.tenantId, produtoId, d)
-    revalidatePath('/painel/fiscal', 'layout')
+    revalidatePath('/painel/fiscal')
+    revalidatePath('/painel/fiscal/produtos')
     return { ok: true }
   } catch (e) {
     return { ok: false, erro: mensagem(e, 'Não foi possível guardar.') }

@@ -12,7 +12,7 @@ insert into public.tenant_modulos (tenant_id, modulo, ativo, ativado_em)
 select 'a0000000-0000-4000-8000-000000000001', m, true, now()
   from unnest(array[
     'pedidos', 'cardapio', 'resumo', 'clientes', 'financeiro', 'caixa', 'pdv',
-    'comandas', 'cozinha', 'estoque', 'producao', 'equipe', 'ia_whatsapp'
+    'comandas', 'cozinha', 'estoque', 'producao', 'equipe', 'ponto', 'ia_whatsapp'
   ]) as m
 on conflict (tenant_id, modulo) do update set ativo = true;
 

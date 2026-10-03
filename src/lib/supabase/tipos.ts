@@ -577,6 +577,30 @@ export type EquipeMembroLinha = {
   tentativas_falhas: number
   bloqueado_ate: string | null
   criado_em: string
+  registra_ponto: boolean
+  jornada_minutos: number
+}
+
+export type TipoBatida = 'entrada' | 'saida_intervalo' | 'volta_intervalo' | 'saida'
+
+export type PontoBatidaLinha = {
+  id: string
+  tenant_id: string
+  membro_id: string
+  tipo: TipoBatida
+  momento: string
+  origem: 'relogio' | 'manual'
+  foto_path: string | null
+  latitude: number | null
+  longitude: number | null
+  precisao_m: number | null
+  dispositivo: string | null
+  motivo: string | null
+  registado_por: string | null
+  anulada_em: string | null
+  anulada_por: string | null
+  anulada_motivo: string | null
+  criado_em: string
 }
 
 export type AuditoriaLinha = {
@@ -1363,7 +1387,12 @@ export type Database = {
       >
       estoque_vinculos: Tabela<EstoqueVinculoLinha, 'produto_id' | 'insumo_id' | 'fator'>
       inventarios: Tabela<InventarioLinha, 'id' | 'descricao' | 'autor_nome' | 'itens' | 'ajustes' | 'criado_em'>
-      equipe_membros: Tabela<EquipeMembroLinha, 'id' | 'ativo' | 'tentativas_falhas' | 'bloqueado_ate' | 'criado_em'>
+      equipe_membros: Tabela<EquipeMembroLinha, 'id' | 'ativo' | 'tentativas_falhas' | 'bloqueado_ate' | 'criado_em' | 'registra_ponto' | 'jornada_minutos'>
+      ponto_batidas: Tabela<
+        PontoBatidaLinha,
+        | 'id' | 'momento' | 'origem' | 'foto_path' | 'latitude' | 'longitude' | 'precisao_m' | 'dispositivo' | 'motivo' | 'registado_por'
+        | 'anulada_em' | 'anulada_por' | 'anulada_motivo' | 'criado_em'
+      >
       auditoria: Tabela<AuditoriaLinha, 'id' | 'papel' | 'aprovado_por' | 'alvo_id' | 'detalhe' | 'criado_em'>
       integracoes: Tabela<IntegracaoLinha, 'ambiente' | 'estado' | 'configuracao' | 'ultimo_erro' | 'verificado_em' | 'atualizado_em'>
       integracoes_segredos: Tabela<IntegracaoSegredoLinha, 'atualizado_em'>
@@ -1461,6 +1490,7 @@ export type Database = {
       estado_entrada: EstadoEntrada
       papel_equipe: PapelEquipe
       estado_cobranca_pix: EstadoCobrancaPix
+      tipo_batida: TipoBatida
       estado_integracao: EstadoIntegracao
       ambiente_integracao: AmbienteIntegracao
       tipo_documento_fiscal: TipoDocumentoFiscal

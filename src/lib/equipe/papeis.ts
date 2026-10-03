@@ -19,10 +19,10 @@ export type Papel = keyof typeof PAPEIS
 /** Módulos que cada papel abre. `null` = todos os ligados na empresa. */
 const MODULOS_DO_PAPEL: Record<Papel, readonly ModuloId[] | null> = {
   gerente: null,
-  caixa: ['pdv', 'caixa', 'comandas', 'pedidos', 'clientes', 'loja', 'conta'],
-  garcom: ['comandas', 'cozinha', 'pedidos', 'conta'],
-  cozinha: ['cozinha', 'pedidos', 'conta'],
-  atendente: ['pedidos', 'cardapio', 'clientes', 'comandas', 'loja', 'conta'],
+  caixa: ['pdv', 'caixa', 'comandas', 'pedidos', 'clientes', 'loja', 'ponto', 'conta'],
+  garcom: ['comandas', 'cozinha', 'pedidos', 'ponto', 'conta'],
+  cozinha: ['cozinha', 'pedidos', 'ponto', 'conta'],
+  atendente: ['pedidos', 'cardapio', 'clientes', 'comandas', 'loja', 'ponto', 'conta'],
 }
 
 export const ACOES_SENSIVEIS = {
@@ -32,6 +32,7 @@ export const ACOES_SENSIVEIS = {
   cancelar_item: 'Cancelar item já na cozinha',
   diferenca_caixa: 'Fechar caixa com diferença',
   estornar_estoque: 'Estornar movimento de estoque',
+  ajustar_ponto: 'Ajustar batida de ponto',
 } as const
 
 export type AcaoSensivel = keyof typeof ACOES_SENSIVEIS
@@ -72,4 +73,9 @@ export function pinAceitavel(pin: string): { ok: true } | { ok: false; motivo: s
   const desce = '9876543210'
   if (sobe.includes(pin) || desce.includes(pin)) return { ok: false, motivo: 'Evite sequências (ex.: 1234).' }
   return { ok: true }
+}
+
+/** Espelho de ponto, batidas manuais e anulações: só o dono (sem PIN de equipe) ou um gerente. */
+export function podeGerirPonto(equipe: { papel: Papel } | null): boolean {
+  return !equipe || equipe.papel === 'gerente'
 }
