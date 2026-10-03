@@ -221,9 +221,16 @@ export async function mudarEstadoComanda(
 }
 
 export async function transferirMesa(supabase: Cliente, tenantId: string, comandaId: string, mesaId: string): Promise<void> {
-  const r = await supabase.from('comandas').update({ mesa_id: mesaId }).eq('tenant_id', tenantId).eq('id', comandaId)
+  const { data: mesa } = await supabase.from('mesas').select('numero').eq('tenant_id', tenantId).eq('id', mesaId).maybeSingle()
+  if (!mesa) throw new ErroDados('Mesa não encontrada.')
+  const r = await supabase.from('comandas').update({ mesa_id: mesaId }).eq('tenant_id', tenantId).eq('id', comandaId).select('pedido_id').single()
   if (r.error?.code === '23505') throw new ErroDados('A mesa de destino já está ocupada. Use "juntar mesas".')
-  garantir(r, 'Não foi possível transferir')
+  const { pedido_id } = ouErro(r, 'Não foi possível transferir')
+  // O rótulo do pedido é o que a cozinha mostra ("Mesa 4"): acompanha a mesa.
+  garantir(
+    await supabase.from('pedidos').update({ cliente_nome: `Mesa ${mesa.numero}` }).eq('tenant_id', tenantId).eq('id', pedido_id),
+    'Não foi possível actualizar o rótulo da mesa',
+  )
 }
 
 export async function juntarComandas(supabase: Cliente, tenantId: string, destinoId: string, origemId: string): Promise<void> {

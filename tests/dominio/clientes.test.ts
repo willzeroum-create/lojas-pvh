@@ -135,3 +135,37 @@ describe('formulário de pessoa', () => {
     expect(Object.keys(r.porCampo)).toEqual(['e_cliente'])
   })
 })
+
+describe('resumo diário no WhatsApp', () => {
+  const base = {
+    empresa: 'Lanchonete da Praça',
+    dia: 'sexta-feira, 3 de outubro',
+    vendas: { total: 1250.5, pedidos: 41, porCanal: [{ canal: 'balcao', total: 800.5, pedidos: 30 }, { canal: 'cardapio', total: 450, pedidos: 11 }], cancelados: 1 },
+    semanaPassada: 1000,
+    maisVendidos: [{ nome: 'X-Salada', quantidade: 18 }, { nome: 'Pão de queijo', quantidade: 2.5 }],
+    caixas: [{ operador: 'Ana', aberto: false, diferenca: -12.5 }],
+    contas: { pagarHoje: 0, pagarAmanha: 350, vencidasPagar: 0, receberHoje: 0, vencidasReceber: 80 },
+    estoqueBaixo: [{ nome: 'Carne moída', saldo: 1.2, unidade: 'kg' }],
+    comandasAbertas: 0,
+  }
+
+  it('monta o texto só com as secções que têm conteúdo', async () => {
+    const { montarResumoDiario } = await import('@/lib/dominio/resumo-diario')
+    const t = montarResumoDiario(base)
+    expect(t).toContain('*Lanchonete da Praça · resumo de sexta-feira, 3 de outubro*')
+    expect(t).toMatch(/R\$\s1\.250,50\* em 41 vendas/)
+    expect(t).toContain('+25% contra a semana passada')
+    expect(t).toMatch(/Balcão: R\$\s800,50 \(30\)/)
+    expect(t).toMatch(/Ana: falta de R\$\s12,50/)
+    expect(t).toContain('Pão de queijo — 2,5')
+    expect(t).toContain('Carne moída: 1,2 kg')
+    expect(t).not.toContain('comanda')
+  })
+
+  it('linha única para o modelo da API oficial, sem quebras', async () => {
+    const { linhaResumo } = await import('@/lib/dominio/resumo-diario')
+    const l = linhaResumo(base)
+    expect(l).not.toContain('\n')
+    expect(l).toMatch(/41 vendas · caixa com diferença .* · R\$\s350,00 a pagar amanhã · 1 item com estoque baixo/)
+  })
+})

@@ -437,3 +437,67 @@
   body:has(#comprovante-pdv) #comprovante-pdv { display: block; position: static; width: 76mm; max-width: 100%; padding: 4mm; margin: 0; border: 0; border-radius: 0; background: white; color: black; font-size: 10pt; box-shadow: none; }
   #comprovante-pdv :is(header, h1, h2, p, li, tr) { break-inside: avoid; }
 }
+
+/* Atendimento do salão: alvos de uma mão e os mesmos materiais do caixa. */
+.comandas-area { min-width: 0; overflow-wrap: anywhere; }
+.comandas-area :is(h1, h2, h3) { font-family: var(--font-sans); }
+.comandas-area :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--color-tangerina-escura);
+  outline-offset: 3px;
+}
+.comandas-area :is(input, select, textarea) { scroll-margin-block: 6rem; }
+.comandas-area input::placeholder { color: var(--color-carvao); opacity: 0.7; }
+.comanda-mesa {
+  display: flex;
+  min-height: 284px;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  flex-direction: column;
+  border-width: 1px;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: left;
+  color: var(--color-tinta);
+  cursor: pointer;
+}
+.comanda-mesa:hover { outline: 2px solid var(--color-tinta); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  html:has(.comandas-area), .comandas-area *, .comandas-area *::before, .comandas-area *::after {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Cozinha: tinta quente, leitura distante e operação com um toque. */
+.cozinha-painel { min-width: 0; overflow-wrap: anywhere; color-scheme: dark; }
+:is(.cozinha-painel, .cozinha-configuracao) :is(h1, h2, h3) { font-family: var(--font-sans); }
+.cozinha-painel:fullscreen { width: 100%; height: 100%; overflow: auto; border-radius: 0; }
+.cozinha-painel[data-tv='true'] { position: fixed; inset: 0; z-index: 80; overflow: auto; border-radius: 0; padding: clamp(1rem, 2vw, 2.5rem); }
+.cozinha-botao { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: .5rem; border: 1px solid var(--color-cinza); border-radius: 8px; background: #24201a; padding: .65rem .9rem; color: var(--color-papel); font-weight: 700; }
+.cozinha-botao:hover:not(:disabled) { background: var(--color-carvao); }
+.cozinha-botao:disabled { opacity: .5; cursor: wait; }
+.cozinha-painel :is(a, button, input, select, textarea, [tabindex]):focus-visible { outline: 3px solid var(--color-tangerina); outline-offset: 3px; }
+.cozinha-primario { background: var(--color-tangerina); color: var(--color-tinta); border-color: var(--color-tangerina); }
+.cozinha-primario:hover:not(:disabled) { background: #ff6935; }
+.cozinha-aba { min-height: 48px; flex-shrink: 0; border: 1px solid var(--color-cinza); border-radius: 8px; padding: .65rem 1rem; font-weight: 700; color: var(--color-areia); }
+.cozinha-aba[aria-pressed='true'] { color: var(--color-tinta); background: var(--color-areia); border-color: var(--color-areia); }
+.cozinha-campo { width: 100%; min-height: 48px; border: 1px solid var(--color-nevoa); border-radius: 8px; background: var(--color-tinta); color: var(--color-papel); padding: .75rem; }
+.cozinha-coluna-titulo[data-etapa='em_preparo'] { border-color: var(--color-tangerina); }
+.cozinha-coluna-titulo[data-etapa='pronto'] { border-color: #76cf99; }
+.cozinha-cartao[data-urgencia='alerta'] { border-color: var(--color-ambar); }
+.cozinha-cartao[data-urgencia='atrasado'] { border-color: #e87566; }
+.cozinha-tempo[data-urgencia='alerta'] { color: #fbd68d; }
+.cozinha-tempo[data-urgencia='atrasado'] { color: #ffb9ae; }
+.cozinha-painel[data-tv='true'] :is(.cozinha-item-nome, .cozinha-rotulo) { font-size: clamp(1.5rem, 2vw, 2.25rem); }
+.cozinha-painel[data-tv='true'] :is(.cozinha-numero, .cozinha-quantidade) { font-size: clamp(2rem, 2.8vw, 3.5rem); }
+.cozinha-painel[data-tv='true'] :is(.cozinha-opcoes, .cozinha-observacao) { font-size: clamp(1.125rem, 1.5vw, 1.75rem); }
+.cozinha-painel[data-tv='true'] .cozinha-tempo > p:first-child { font-size: clamp(1.75rem, 2.4vw, 3rem); }
+@media (prefers-reduced-motion: reduce) {
+  html:has(.cozinha-painel), .cozinha-painel *, .cozinha-painel *::before, .cozinha-painel *::after {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}

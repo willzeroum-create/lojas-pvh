@@ -247,10 +247,11 @@ export const MODULOS = [
   {
     id: 'ia_whatsapp',
     nome: 'Resumo diário no WhatsApp',
-    descricao: 'Assistente que manda ao dono o resumo de vendas, caixa e ponto.',
+    descricao: 'Todo fim de dia o dono recebe vendas por canal, caixa e diferenças, contas a vencer e estoque baixo.',
     grupo: 'inteligencia',
-    maturidade: 'planejado',
-    ativacao: 'Número de WhatsApp do dono e, para envio próprio, a API oficial.',
+    maturidade: 'pre_funcional',
+    requer: ['resumo'],
+    ativacao: 'Envio manual já funciona. Automático às 22h: conta WhatsApp Business da agência com o modelo resumo_diario aprovado.',
   },
   {
     id: 'relatorios',
