@@ -50,9 +50,9 @@ describe('resolverAtivos', () => {
   })
 
   it('ignora ids desconhecidos e módulos planejados', () => {
-    const ativos = resolverAtivos(['pedidos', 'inexistente', 'fiscal'])
+    const ativos = resolverAtivos(['pedidos', 'inexistente', 'delivery'])
     expect(ativos.has('pedidos')).toBe(true)
-    expect(ativos.has('fiscal' as never)).toBe(false)
+    expect(ativos.has('delivery' as never)).toBe(false)
     expect(ativos.has('inexistente' as never)).toBe(false)
   })
 
@@ -73,7 +73,7 @@ describe('ligar e desligar', () => {
 
   it('recusa ligar sem a dependência, planejado, essencial ou desconhecido', () => {
     expect(podeLigar('cardapio', resolverAtivos([]))).toEqual({ ok: false, motivo: 'Ligue primeiro: Pedidos.' })
-    expect(podeLigar('fiscal', base).ok).toBe(false)
+    expect(podeLigar('delivery', base).ok).toBe(false)
     expect(podeLigar('loja', base).ok).toBe(false)
     expect(podeLigar('nada', base).ok).toBe(false)
   })
