@@ -1,0 +1,26 @@
+# dependências
+node_modules
+
+# next.js
+.next
+out
+next-env.d.ts
+*.tsbuildinfo
+
+# ambiente
+.env
+.env.*
+!.env.example
+
+# supabase local
+supabase/.branches
+supabase/.temp
+
+# sistema
+.DS_Store
+Thumbs.db
+
+# diagnóstico (screenshots e relatório)
+.diagnostico
+
+.vercel

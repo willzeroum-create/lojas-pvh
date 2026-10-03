@@ -1,0 +1,70 @@
+{
+  "name": "lojas-pvh",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.30.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "tipos": "supabase gen types typescript --linked --schema public > src/lib/supabase/tipos.ts",
+    "operador": "tsx scripts/criar-operador.ts",
+    "migrar": "tsx scripts/migrar.ts",
+    "sql:completo": "node scripts/gerar-sql-completo.mjs",
+    "env:verificar": "node scripts/verificar-env.mjs",
+    "test:e2e": "node tests/e2e/pedido.e2e.mjs",
+    "test:e2e:console": "node tests/e2e/console.e2e.mjs",
+    "diagnostico": "node tests/e2e/diagnostico.e2e.mjs",
+    "env:vercel": "node scripts/enviar-env-vercel.mjs",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.123.0",
+    "@supabase/ssr": "0.12.5",
+    "@supabase/supabase-js": "2.114.0",
+    "lucide-react": "1.39.0",
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-markdown": "10.1.0",
+    "remark-gfm": "4.0.1",
+    "server-only": "0.0.1",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@playwright/test": "^1.62.1",
+    "@tailwindcss/postcss": "4.3.3",
+    "@tailwindcss/typography": "0.5.20",
+    "@types/node": "26.4.1",
+    "@types/pg": "^8.23.1",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.4",
+    "pg": "^8.23.0",
+    "postcss": "8.5.26",
+    "prettier": "3.9.6",
+    "prettier-plugin-tailwindcss": "0.8.1",
+    "tailwindcss": "4.3.3",
+    "tsx": "^4.20.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "unrs-resolver",
+      "@electric-sql/pglite"
+    ]
+  }
+}

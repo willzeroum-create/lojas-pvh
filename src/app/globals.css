@@ -1,0 +1,184 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/*
+ * Tokens do sistema. Uma família de cores quente, de papel e tinta, com uma
+ * única cor de acção (tangerina). O tenant pode trocar a cor de acção na
+ * página pública através de --cor-marca.
+ */
+@theme {
+  --color-papel: #faf6ee;
+  --color-papel-2: #f3ecdf;
+  --color-papel-3: #ebe2d0;
+  --color-areia: #dfd5c2;
+  --color-tinta: #171410;
+  --color-carvao: #3d3730;
+  --color-cinza: #7a7266;
+  --color-nevoa: #b3aa9b;
+  --color-tangerina: #f2541b;
+  --color-tangerina-escura: #c8410f;
+  --color-tangerina-clara: #ffe6d9;
+  --color-verde: #1f8a4c;
+  --color-verde-clara: #dcf3e4;
+  --color-ambar: #d98c0a;
+  --color-ambar-clara: #fbecc9;
+  --color-vermelho: #c8321f;
+  --color-vermelho-clara: #fadfda;
+  --color-branco: #ffffff;
+
+  --font-display: var(--font-fraunces), 'Iowan Old Style', Georgia, serif;
+  --font-sans: var(--font-figtree), 'Segoe UI', system-ui, sans-serif;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
+
+  --shadow-folha: 0 -8px 30px rgb(23 20 16 / 0.18);
+  --shadow-cartao: 0 1px 2px rgb(23 20 16 / 0.06), 0 6px 18px rgb(23 20 16 / 0.05);
+  --shadow-flutuante: 0 10px 30px rgb(23 20 16 / 0.22);
+
+  --animate-subir: subir 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-aparecer: aparecer 0.4s ease-out both;
+  --animate-pulsar: pulsar 1.6s ease-in-out infinite;
+
+  @keyframes subir {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  @keyframes aparecer {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes pulsar {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgb(242 84 27 / 0.55);
+    }
+    50% {
+      box-shadow: 0 0 0 10px rgb(242 84 27 / 0);
+    }
+  }
+}
+
+@layer base {
+  :root {
+    --cor-marca: var(--color-tangerina);
+    --cor-marca-escura: var(--color-tangerina-escura);
+    --cor-marca-clara: var(--color-tangerina-clara);
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-papel font-sans text-tinta antialiased;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+
+  /* Textura de papel discreta: dá corpo ao fundo sem pesar. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.35;
+    background-image: radial-gradient(rgb(23 20 16 / 0.045) 0.6px, transparent 0.6px);
+    background-size: 5px 5px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+    text-wrap: balance;
+  }
+
+  button,
+  [role='button'] {
+    touch-action: manipulation;
+  }
+
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  ::selection {
+    background: var(--cor-marca-clara);
+  }
+}
+
+@utility marca {
+  color: var(--cor-marca);
+}
+
+@utility bg-marca {
+  background-color: var(--cor-marca);
+}
+
+@utility bg-marca-clara {
+  background-color: var(--cor-marca-clara);
+}
+
+@utility border-marca {
+  border-color: var(--cor-marca);
+}
+
+@utility ring-marca {
+  --tw-ring-color: var(--cor-marca);
+}
+
+/* Área segura do iPhone na barra inferior do painel. */
+@utility pb-segura {
+  padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+}
+
+/* Esconde a barra de scroll horizontal das listas de categorias. */
+@utility sem-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Markdown das notas internas: a prosa usa os tokens da casa. */
+@layer components {
+  .prose {
+    --tw-prose-body: var(--color-carvao);
+    --tw-prose-headings: var(--color-tinta);
+    --tw-prose-links: var(--color-tinta);
+    --tw-prose-bold: var(--color-tinta);
+    --tw-prose-counters: var(--color-cinza);
+    --tw-prose-bullets: var(--color-nevoa);
+    --tw-prose-hr: var(--color-areia);
+    --tw-prose-quotes: var(--color-carvao);
+    --tw-prose-quote-borders: var(--color-areia);
+    --tw-prose-code: var(--color-tinta);
+    --tw-prose-pre-code: var(--color-papel);
+    --tw-prose-pre-bg: var(--color-tinta);
+    --tw-prose-th-borders: var(--color-areia);
+    --tw-prose-td-borders: var(--color-areia);
+  }
+  .prose h1,
+  .prose h2,
+  .prose h3 {
+    font-family: var(--font-display);
+  }
+}

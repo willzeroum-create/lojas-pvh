@@ -1,0 +1,11 @@
+/** @type {import('prettier').Config} */
+const config = {
+  semi: false,
+  singleQuote: true,
+  printWidth: 110,
+  trailingComma: 'all',
+  plugins: ['prettier-plugin-tailwindcss'],
+  tailwindStylesheet: './src/app/globals.css',
+}
+
+export default config
