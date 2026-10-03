@@ -1,0 +1,31 @@
+.revelar {
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .revelar[data-revelacao] {
+    transition:
+      opacity 500ms ease var(--atraso-revelacao, 0ms),
+      transform 500ms cubic-bezier(0.2, 0.75, 0.25, 1) var(--atraso-revelacao, 0ms);
+  }
+
+  .revelar[data-revelacao='aguardando']:not(:focus-within) {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: none;
+  }
+}
+
+.revelar:focus-within {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .revelar {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
