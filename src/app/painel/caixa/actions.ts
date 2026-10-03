@@ -10,6 +10,7 @@ import { revalidatePath } from 'next/cache'
 import { autorDe, exigirAprovacao, exigirModulo } from '@/lib/auth/guardas'
 import { abrirCaixa, conferirCaixa, detalheCaixa, fecharCaixa, movimentarCaixa, type ResultadoFechamento } from '@/lib/dados/caixa'
 import { ErroDados, pedeGerente } from '@/lib/dados/erros'
+import { listarPessoas } from '@/lib/dados/clientes'
 import { obterLojaPrincipal } from '@/lib/dados/lojas'
 import { cancelarVendaBalcao, registarVendaBalcao, subtotalDaVenda, type VendaRegistada } from '@/lib/dados/pdv'
 import { conferir } from '@/lib/dominio/caixa'
@@ -148,4 +149,27 @@ export async function cancelarVendaAction(entrada: unknown): Promise<Resultado> 
   }
   revalidar()
   return { ok: true }
+}
+
+export type ClientePdv = { id: string; nome: string; contato: string | null }
+
+/** PDV: procurar o cliente por nome, WhatsApp ou CPF (para cashback e histórico). */
+export async function buscarClientePdvAction(busca: string): Promise<Resultado<{ clientes: ClientePdv[] }>> {
+  const ctx = await exigirModulo('pdv')
+  const termo = typeof busca === 'string' ? busca.trim().slice(0, 60) : ''
+  if (termo.length < 2) return { ok: true, clientes: [] }
+  try {
+    const { itens } = await listarPessoas(ctx.supabase, ctx.tenantId, { papel: 'todos', busca: termo, pagina: 1 })
+    return {
+      ok: true,
+      clientes: itens.slice(0, 8).map((p) => ({
+        id: p.id,
+        nome: p.nome,
+        // Só os últimos dígitos: o ecrã do caixa fica virado para o cliente.
+        contato: p.whatsapp ? `WhatsApp …${p.whatsapp.slice(-4)}` : p.documento ? `Doc. …${p.documento.slice(-3)}` : null,
+      })),
+    }
+  } catch (e) {
+    return { ok: false, erro: mensagem(e, 'Não foi possível procurar.') }
+  }
 }
