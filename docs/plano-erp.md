@@ -23,11 +23,12 @@
 | Equipe e PIN | funcional | PIN por pessoa no tablet da loja, papéis, aprovação do gerente, auditoria | 0015 |
 | Ponto eletrônico | funcional | Relógio no tablet: PIN + foto da webcam + local; batidas imutáveis (só se anulam, com motivo e PIN do gerente); espelho do mês com intervalo, extras, noturno (hora de 52min30) e inconsistências CLT; impressão | 0019, 0020 |
 | Relatórios | funcional | Vendas por dia, hora, canal e pagamento, comparação com o período anterior, curva ABC, exportação CSV para Excel | — |
+| Delivery próprio | funcional | Taxa por bairro no cardápio (fora dos bairros não se entrega), entrega criada sozinha, quadro com despacho, link do entregador no celular (sem senha), acompanhamento para o cliente na mensagem do WhatsApp, acerto do repasse | 0022 |
 | Fidelidade (cashback) | funcional | % de volta em cada compra de cliente identificado (balcão ou cardápio), validade FIFO, uso no PDV na mesma transacção da venda, estorno e devolução ao cancelar, ajuste com PIN | 0021 |
 | Resumo diário no WhatsApp | pré-funcional | Envio manual já funciona; automático às 22h precisa da API oficial (abaixo) | — |
 | Nota fiscal (NFC-e) | pré-funcional | Emissão pela Focus NFe a partir da venda, DANFE, cancelamento, dados fiscais por produto; falta o contrato e o certificado A1 de cada cliente (§6) | 0016 |
 | Pix (Bancos) | pré-funcional | QR dinâmico do Mercado Pago no PDV, avulso e nas contas a receber; baixa automática pelo webhook; falta a conta Mercado Pago de cada cliente (§6) | 0017 |
-| Cobrança, Delivery, OS, Loja virtual, Marketplaces | planejado | No catálogo, visíveis no console como "em construção" | — |
+| Cobrança, OS, Loja virtual, Marketplaces | planejado | No catálogo, visíveis no console como "em construção" | — |
 
 Regras que atravessam tudo: dados sempre por `tenant_id` com RLS (provado em
 `tests/bd/*.test.ts`); dinheiro nunca se apaga (estorno/cancelamento);
@@ -41,7 +42,7 @@ auditoria quando a equipe está ligada.
    [operacao.md](operacao.md) §1).
 2. Base de dados — uma das duas:
    - **projeto que já tinha 0001–0007**: correr por ordem no SQL Editor
-     `supabase/atualizacao-0008.sql` … `atualizacao-0021.sql`;
+     `supabase/atualizacao-0008.sql` … `atualizacao-0022.sql`;
    - **projeto novo**: `supabase/instalacao-completa.sql` e depois `supabase/seed.sql`.
 3. Demonstração: `supabase/demo-erp.sql` liga todos os módulos prontos na
    Lanchonete da Praça, com mesas, estações, ficha técnica, estoque inicial,
@@ -86,7 +87,13 @@ Com `pnpm dev` (entra-se sem login em localhost) e a demonstração aplicada:
     saldo e o máximo); cancelar essa venda → o cashback usado volta.
 14. **Relatórios**: últimos 7 dias com as vendas acima; curva ABC; exportar
     vendas e abrir no Excel (acentos e vírgula decimal certos).
-15. **Pix e Nota** (só com as contas de teste do §6): console → Integrações →
+15. **Delivery**: em Entregas → Bairros e entregadores, cadastrar "Centro" (R$ 5)
+    e um entregador; no cardápio público, pedido de entrega → o bairro é pedido
+    no carrinho e a taxa aparece; a mensagem do WhatsApp traz o link de
+    acompanhamento; no painel, Saiu → abrir o link do entregador no celular →
+    Entreguei → o pedido fica concluído e o link do cliente mostra "entregue";
+    Acertar o repasse.
+16. **Pix e Nota** (só com as contas de teste do §6): console → Integrações →
     tokens de homologação; no PDV gerar o QR e pagar no app de teste; emitir a
     NFC-e de uma venda e abrir o DANFE.
 
@@ -102,9 +109,8 @@ cliente por mês.
 
 ## 5. Próximos módulos (ordem do catálogo)
 
-Delivery próprio (entregadores, taxa por bairro, acompanhamento), Cobrança
-(boleto e lembretes), Ordens de serviço, Loja virtual e Marketplaces (iFood e
-99Food pelo formato Open Delivery).
+Cobrança (boleto e lembretes), Ordens de serviço, Loja virtual e Marketplaces
+(iFood e 99Food pelo formato Open Delivery; exigem homologação com CNPJ).
 
 ## 6. Integrações de cada cliente (pré-funcionais)
 

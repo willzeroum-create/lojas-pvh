@@ -13,7 +13,7 @@ select 'a0000000-0000-4000-8000-000000000001', m, true, now()
   from unnest(array[
     'pedidos', 'cardapio', 'resumo', 'clientes', 'financeiro', 'caixa', 'pdv',
     'comandas', 'cozinha', 'estoque', 'producao', 'equipe', 'ponto', 'relatorios',
-    'fidelidade', 'ia_whatsapp'
+    'fidelidade', 'delivery', 'ia_whatsapp'
   ]) as m
 on conflict (tenant_id, modulo) do update set ativo = true;
 
