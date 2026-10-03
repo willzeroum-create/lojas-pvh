@@ -1,6 +1,6 @@
 'use client'
 
-import { BarChart3, ClipboardList, Store, UserRound, UtensilsCrossed, type LucideIcon } from 'lucide-react'
+import { BarChart3, ClipboardList, Store, UserRound, Users, UtensilsCrossed, type LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { IconeModulo, Separador } from '@/lib/modulos/catalogo'
@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils/cn'
 const ICONES: Record<IconeModulo, LucideIcon> = {
   pedidos: ClipboardList,
   cardapio: UtensilsCrossed,
+  clientes: Users,
   loja: Store,
   resumo: BarChart3,
   conta: UserRound,

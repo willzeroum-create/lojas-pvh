@@ -32,7 +32,7 @@ export type GrupoModulo = keyof typeof GRUPOS_MODULO
 export type Maturidade = 'funcional' | 'pre_funcional' | 'planejado'
 
 /** Ícones dos separadores do painel; o componente de navegação traduz o nome. */
-export type IconeModulo = 'pedidos' | 'cardapio' | 'loja' | 'resumo' | 'conta'
+export type IconeModulo = 'pedidos' | 'cardapio' | 'clientes' | 'loja' | 'resumo' | 'conta'
 
 export type ModuloModelo = {
   id: string
@@ -200,10 +200,11 @@ export const MODULOS = [
   },
   {
     id: 'clientes',
-    nome: 'Clientes',
-    descricao: 'Cadastro com consulta de CNPJ e CEP, histórico e aniversários.',
+    nome: 'Clientes e fornecedores',
+    descricao: 'Cadastro com consulta de CNPJ e CEP, histórico de compras e consentimento LGPD.',
     grupo: 'relacionamento',
-    maturidade: 'planejado',
+    maturidade: 'funcional',
+    painel: { href: '/painel/clientes', rotulo: 'Clientes', icone: 'clientes', ordem: 25 },
   },
   {
     id: 'fidelidade',

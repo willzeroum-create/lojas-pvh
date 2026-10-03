@@ -36,6 +36,7 @@ export type CanalPedido = 'cardapio' | 'whatsapp' | 'balcao' | 'ifood' | '99food
 export type PedidoStatus = 'novo' | 'aceite' | 'pronto' | 'concluido' | 'cancelado'
 export type TipoEntrega = 'entrega' | 'retirada'
 export type FormaPagamento = 'pix' | 'dinheiro' | 'cartao'
+export type TipoPessoa = 'pf' | 'pj'
 export type CadeiaEstado = 'nao_avaliado' | 'ja_tinha' | 'pendente' | 'em_curso' | 'concluido' | 'nao_aplica'
 
 // ---------------------------------------------------------------------------
@@ -128,6 +129,7 @@ export type PedidoLinha = {
   id: string
   tenant_id: string
   loja_id: string
+  cliente_id: string | null
   canal: CanalPedido
   canal_pedido_id: string | null
   numero: number | null
@@ -245,6 +247,53 @@ export type FichaLinha = {
   produto_id: string
   insumo_id: string
   quantidade: number
+}
+
+export type PessoaLinha = {
+  id: string
+  tenant_id: string
+  tipo: TipoPessoa
+  nome: string
+  nome_fantasia: string | null
+  documento: string | null
+  whatsapp: string | null
+  email: string | null
+  nascimento: string | null
+  observacoes: string | null
+  e_cliente: boolean
+  e_fornecedor: boolean
+  etiquetas: string[]
+  origem: 'manual' | 'pedido' | 'importacao'
+  anonimizado_em: string | null
+  criado_em: string
+  atualizado_em: string
+}
+
+export type PessoaEnderecoLinha = {
+  id: string
+  tenant_id: string
+  pessoa_id: string
+  rotulo: string
+  cep: string | null
+  rua: string | null
+  numero: string | null
+  complemento: string | null
+  bairro: string | null
+  cidade: string | null
+  uf: string | null
+  referencia: string | null
+  principal: boolean
+  criado_em: string
+}
+
+export type ConsentimentoLinha = {
+  id: string
+  tenant_id: string
+  pessoa_id: string
+  finalidade: 'pedidos' | 'marketing' | 'aniversario'
+  concedido: boolean
+  origem: 'cardapio' | 'balcao' | 'painel' | 'importacao'
+  registado_em: string
 }
 
 export type TenantModuloLinha = {
@@ -390,6 +439,7 @@ export type Database = {
       pedidos: Tabela<
         PedidoLinha,
         | 'id'
+        | 'cliente_id'
         | 'canal_pedido_id'
         | 'numero'
         | 'cliente_nome'
@@ -570,6 +620,70 @@ export type Database = {
           },
         ]
       >
+      pessoas: Tabela<
+        PessoaLinha,
+        | 'id'
+        | 'tipo'
+        | 'nome_fantasia'
+        | 'documento'
+        | 'whatsapp'
+        | 'email'
+        | 'nascimento'
+        | 'observacoes'
+        | 'e_cliente'
+        | 'e_fornecedor'
+        | 'etiquetas'
+        | 'origem'
+        | 'anonimizado_em'
+        | 'criado_em'
+        | 'atualizado_em',
+        [
+          {
+            foreignKeyName: 'pessoas_tenant_id_fkey'
+            columns: ['tenant_id']
+            isOneToOne: false
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
+          },
+        ]
+      >
+      pessoa_enderecos: Tabela<
+        PessoaEnderecoLinha,
+        | 'id'
+        | 'rotulo'
+        | 'cep'
+        | 'rua'
+        | 'numero'
+        | 'complemento'
+        | 'bairro'
+        | 'cidade'
+        | 'uf'
+        | 'referencia'
+        | 'principal'
+        | 'criado_em',
+        [
+          {
+            foreignKeyName: 'pessoa_enderecos_pessoa_id_tenant_id_fkey'
+            columns: ['pessoa_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'pessoas'
+            referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
+      consentimentos: Tabela<
+        ConsentimentoLinha,
+        'id' | 'registado_em',
+        [
+          {
+            foreignKeyName: 'consentimentos_pessoa_id_tenant_id_fkey'
+            columns: ['pessoa_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'pessoas'
+            referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
       tenant_modulos: Tabela<
         TenantModuloLinha,
         'ativo' | 'configuracao' | 'ativado_em' | 'criado_em' | 'atualizado_em',
@@ -588,6 +702,7 @@ export type Database = {
     Functions: {
       criar_pedido: { Args: { p: Json }; Returns: PedidoLinha }
       anonimizar_pedidos: { Args: { dias: number }; Returns: number }
+      anonimizar_pessoa: { Args: { p_tenant: string; p_pessoa: string }; Returns: undefined }
     }
     Enums: {
       tenant_status: TenantStatus
@@ -597,6 +712,7 @@ export type Database = {
       tipo_entrega: TipoEntrega
       forma_pagamento: FormaPagamento
       cadeia_estado: CadeiaEstado
+      tipo_pessoa: TipoPessoa
     }
     CompositeTypes: { [_ in never]: never }
   }

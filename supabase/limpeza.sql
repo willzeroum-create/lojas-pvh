@@ -13,6 +13,7 @@ drop policy if exists "fotos: tenant substitui" on storage.objects;
 drop policy if exists "fotos: tenant apaga" on storage.objects;
 
 drop table if exists
+  public.consentimentos, public.pessoa_enderecos, public.pessoas,
   public.tenant_modulos,
   public.arquivos, public.notas_internas, public.cadeia_registos, public.cadeia_etapas,
   public.fichas, public.insumos, public.tenant_onboarding,
@@ -23,7 +24,9 @@ drop table if exists
 
 drop function if exists public.criar_pedido(jsonb);
 drop function if exists public.anonimizar_pedidos(integer);
+drop function if exists public.anonimizar_pessoa(uuid, uuid);
 
+drop type if exists public.tipo_pessoa;
 drop type if exists public.cadeia_estado;
 drop type if exists public.etapa_onboarding;
 drop type if exists public.forma_pagamento;
