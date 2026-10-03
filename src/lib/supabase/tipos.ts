@@ -36,6 +36,7 @@ export type CanalPedido = 'cardapio' | 'whatsapp' | 'balcao' | 'ifood' | '99food
 export type UnidadeEstoque = 'un' | 'kg' | 'g' | 'l' | 'ml' | 'cx' | 'pct' | 'dz'
 export type TipoMovimentoEstoque = 'entrada' | 'saida' | 'venda' | 'ajuste' | 'estorno' | 'producao'
 export type EstadoEntrada = 'pendente' | 'concluida' | 'cancelada'
+export type PapelEquipe = 'gerente' | 'caixa' | 'garcom' | 'cozinha' | 'atendente'
 export type EstadoPreparo = 'aguardando' | 'em_preparo' | 'pronto' | 'entregue' | 'cancelado'
 export type EstadoComanda = 'aberta' | 'conta' | 'fechada' | 'cancelada'
 export type PedidoStatus = 'novo' | 'aceite' | 'pronto' | 'concluido' | 'cancelado'
@@ -553,6 +554,31 @@ export type InventarioLinha = {
   autor_nome: string | null
   itens: Json
   ajustes: number
+  criado_em: string
+}
+
+export type EquipeMembroLinha = {
+  id: string
+  tenant_id: string
+  nome: string
+  papel: PapelEquipe
+  pin_hash: string
+  ativo: boolean
+  tentativas_falhas: number
+  bloqueado_ate: string | null
+  criado_em: string
+}
+
+export type AuditoriaLinha = {
+  id: string
+  tenant_id: string
+  quem: string
+  papel: string | null
+  aprovado_por: string | null
+  acao: string
+  descricao: string
+  alvo_id: string | null
+  detalhe: Json
   criado_em: string
 }
 
@@ -1247,6 +1273,8 @@ export type Database = {
       >
       estoque_vinculos: Tabela<EstoqueVinculoLinha, 'produto_id' | 'insumo_id' | 'fator'>
       inventarios: Tabela<InventarioLinha, 'id' | 'descricao' | 'autor_nome' | 'itens' | 'ajustes' | 'criado_em'>
+      equipe_membros: Tabela<EquipeMembroLinha, 'id' | 'ativo' | 'tentativas_falhas' | 'bloqueado_ate' | 'criado_em'>
+      auditoria: Tabela<AuditoriaLinha, 'id' | 'papel' | 'aprovado_por' | 'alvo_id' | 'detalhe' | 'criado_em'>
       tenant_modulos: Tabela<
         TenantModuloLinha,
         'ativo' | 'configuracao' | 'ativado_em' | 'criado_em' | 'atualizado_em',
@@ -1303,6 +1331,7 @@ export type Database = {
       estado_comanda: EstadoComanda
       tipo_movimento_estoque: TipoMovimentoEstoque
       estado_entrada: EstadoEntrada
+      papel_equipe: PapelEquipe
     }
     CompositeTypes: { [_ in never]: never }
   }

@@ -2,8 +2,7 @@
 
 /** Actions de mesas e comandas: abrir, lançar, transferir, juntar, pedir a conta e fechar no caixa. */
 import { revalidatePath } from 'next/cache'
-import { exigirModulo } from '@/lib/auth/guardas'
-import type { Sessao } from '@/lib/auth/sessao'
+import { autorDe, exigirAprovacao, exigirModulo } from '@/lib/auth/guardas'
 import {
   abrirComanda,
   fecharComanda,
@@ -28,7 +27,6 @@ import { uuid, validar, z } from '@/lib/validacao/zod'
 
 export type Resultado<T = object> = ({ ok: true } & T) | { ok: false; erro: string; porCampo?: Record<string, string> }
 const mensagem = (e: unknown, padrao: string) => (e instanceof ErroDados ? e.message : padrao)
-const nomeDe = (s: Sessao) => s.operador?.nome ?? s.email ?? 'Equipe'
 
 function revalidar(comandaId?: string) {
   revalidatePath('/painel/comandas', 'layout')
@@ -60,8 +58,8 @@ export async function abrirComandaAction(entrada: unknown): Promise<Resultado<{ 
   const r = validar(esquemaAbrirComanda, entrada)
   if (!r.ok) return { ok: false, erro: r.erros[0] ?? 'Dados inválidos', porCampo: r.porCampo }
   try {
-    const { supabase, tenantId, lojaId, sessao } = await contexto()
-    const comandaId = await abrirComanda(supabase, tenantId, lojaId, r.dados, nomeDe(sessao))
+    const ctx = await contexto()
+    const comandaId = await abrirComanda(ctx.supabase, ctx.tenantId, ctx.lojaId, r.dados, autorDe(ctx))
     revalidar()
     return { ok: true, comandaId }
   } catch (e) {
@@ -97,11 +95,12 @@ export async function removerItemAction(comandaId: string, itemId: string): Prom
 
 /** Item que já foi para a cozinha: cancela com motivo (sai da conta, fica no histórico). */
 export async function cancelarItemComandaAction(comandaId: string, entrada: unknown): Promise<Resultado> {
-  const r = validar(esquemaCancelarItem, entrada)
+  const r = validar(esquemaCancelarItem.and(z.object({ pinGerente: z.string().optional() })), entrada)
   if (!r.ok) return { ok: false, erro: r.erros[0] ?? 'Dados inválidos', porCampo: r.porCampo }
   try {
-    const { supabase, tenantId } = await contexto()
-    await cancelarItem(supabase, tenantId, r.dados.itemId, r.dados.motivo)
+    const ctx = await contexto()
+    await exigirAprovacao(ctx, 'cancelar_item', `Cancelou um item da comanda: ${r.dados.motivo}`, r.dados.pinGerente || undefined, r.dados.itemId)
+    await cancelarItem(ctx.supabase, ctx.tenantId, r.dados.itemId, r.dados.motivo)
   } catch (e) {
     return { ok: false, erro: mensagem(e, 'Não foi possível cancelar o item.') }
   }
@@ -152,8 +151,8 @@ export async function fecharComandaAction(entrada: unknown): Promise<Resultado<{
   const r = validar(esquemaFecharComanda, entrada)
   if (!r.ok) return { ok: false, erro: r.erros[0] ?? 'Dados inválidos', porCampo: r.porCampo }
   try {
-    const { supabase, tenantId, sessao } = await contexto()
-    const res = await fecharComanda(supabase, tenantId, r.dados.comandaId, r.dados, nomeDe(sessao))
+    const ctx = await contexto()
+    const res = await fecharComanda(ctx.supabase, ctx.tenantId, r.dados.comandaId, r.dados, autorDe(ctx))
     revalidar(r.dados.comandaId)
     revalidatePath('/painel/caixa', 'layout')
     return { ok: true, ...res }

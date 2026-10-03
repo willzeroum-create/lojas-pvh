@@ -32,7 +32,7 @@ export type GrupoModulo = keyof typeof GRUPOS_MODULO
 export type Maturidade = 'funcional' | 'pre_funcional' | 'planejado'
 
 /** Ícones dos separadores do painel; o componente de navegação traduz o nome. */
-export type IconeModulo = 'estoque' | 'pdv' | 'caixa' | 'comandas' | 'cozinha' | 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
+export type IconeModulo = 'equipe' | 'estoque' | 'pdv' | 'caixa' | 'comandas' | 'cozinha' | 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
 
 export type ModuloModelo = {
   id: string
@@ -229,11 +229,20 @@ export const MODULOS = [
     requer: ['clientes'],
   },
   {
+    id: 'equipe',
+    nome: 'Equipe e PIN',
+    descricao: 'Cada pessoa entra com o seu PIN; o papel decide o que vê; o gerente aprova cancelamentos e descontos; tudo na auditoria.',
+    grupo: 'pessoas',
+    maturidade: 'funcional',
+    painel: { href: '/painel/equipe', rotulo: 'Equipe', icone: 'equipe', ordem: 85 },
+  },
+  {
     id: 'ponto',
     nome: 'Ponto eletrônico',
     descricao: 'Batida por webcam ou celular com foto, local e espelho de ponto.',
     grupo: 'pessoas',
     maturidade: 'planejado',
+    requer: ['equipe'],
   },
   {
     id: 'ia_whatsapp',

@@ -2,7 +2,7 @@
 
 /** Actions da cozinha: mudar o preparo dos itens, cancelar com motivo, estações e categorias. */
 import { revalidatePath } from 'next/cache'
-import { exigirModulo } from '@/lib/auth/guardas'
+import { exigirAprovacao, exigirModulo } from '@/lib/auth/guardas'
 import { cancelarItem, definirEstacaoDaCategoria, mudarPreparo, salvarEstacao } from '@/lib/dados/cozinha'
 import { ErroDados } from '@/lib/dados/erros'
 import { esquemaCancelarItem, esquemaEstacao, esquemaPreparo } from '@/lib/validacao/comandas'
@@ -31,11 +31,12 @@ export async function mudarPreparoAction(entrada: unknown): Promise<Resultado> {
 }
 
 export async function cancelarItemAction(entrada: unknown): Promise<Resultado> {
-  const { supabase, tenantId } = await exigirModulo('cozinha')
-  const r = validar(esquemaCancelarItem, entrada)
+  const ctx = await exigirModulo('cozinha')
+  const r = validar(esquemaCancelarItem.and(z.object({ pinGerente: z.string().optional() })), entrada)
   if (!r.ok) return { ok: false, erro: r.erros[0] ?? 'Dados inválidos', porCampo: r.porCampo }
   try {
-    await cancelarItem(supabase, tenantId, r.dados.itemId, r.dados.motivo)
+    await exigirAprovacao(ctx, 'cancelar_item', `Cancelou um item na cozinha: ${r.dados.motivo}`, r.dados.pinGerente || undefined, r.dados.itemId)
+    await cancelarItem(ctx.supabase, ctx.tenantId, r.dados.itemId, r.dados.motivo)
   } catch (e) {
     return { ok: false, erro: mensagem(e, 'Não foi possível cancelar o item.') }
   }

@@ -5,8 +5,7 @@
  * fichas e insumos exigem `producao`.
  */
 import { revalidatePath } from 'next/cache'
-import { exigirModulo } from '@/lib/auth/guardas'
-import type { Sessao } from '@/lib/auth/sessao'
+import { autorDe, exigirAprovacao, exigirModulo } from '@/lib/auth/guardas'
 import { ErroDados } from '@/lib/dados/erros'
 import {
   aplicarInventario,
@@ -35,7 +34,6 @@ import { uuid, validar } from '@/lib/validacao/zod'
 
 export type Resultado<T = object> = ({ ok: true } & T) | { ok: false; erro: string; porCampo?: Record<string, string> }
 const mensagem = (e: unknown, padrao: string) => (e instanceof ErroDados ? e.message : padrao)
-const nomeDe = (s: Sessao) => s.operador?.nome ?? s.email ?? 'Equipe'
 const falha = (erros: string[], porCampo?: Record<string, string>) => ({ ok: false as const, erro: erros[0] ?? 'Dados inválidos', porCampo })
 
 function revalidar() {
@@ -43,11 +41,11 @@ function revalidar() {
 }
 
 export async function registarSaidaAction(entrada: unknown): Promise<Resultado> {
-  const { supabase, tenantId, sessao } = await exigirModulo('estoque')
+  const ctx = await exigirModulo('estoque')
   const r = validar(esquemaSaida, entrada)
   if (!r.ok) return falha(r.erros, r.porCampo)
   try {
-    await registarSaida(supabase, tenantId, r.dados.item, r.dados.quantidade, r.dados.motivo, nomeDe(sessao))
+    await registarSaida(ctx.supabase, ctx.tenantId, r.dados.item, r.dados.quantidade, r.dados.motivo, autorDe(ctx))
   } catch (e) {
     return { ok: false, erro: mensagem(e, 'Não foi possível registar a saída.') }
   }
@@ -55,12 +53,13 @@ export async function registarSaidaAction(entrada: unknown): Promise<Resultado> 
   return { ok: true }
 }
 
-export async function estornarMovimentoAction(movimentoId: string): Promise<Resultado> {
-  const { supabase, tenantId, sessao } = await exigirModulo('estoque')
+export async function estornarMovimentoAction(movimentoId: string, pinGerente?: string): Promise<Resultado> {
+  const ctx = await exigirModulo('estoque')
   const r = validar(uuid, movimentoId)
   if (!r.ok) return { ok: false, erro: 'Movimento inválido.' }
   try {
-    await estornarMovimento(supabase, tenantId, r.dados, nomeDe(sessao))
+    await exigirAprovacao(ctx, 'estornar_estoque', 'Estornou um movimento de estoque', pinGerente, r.dados)
+    await estornarMovimento(ctx.supabase, ctx.tenantId, r.dados, autorDe(ctx))
   } catch (e) {
     return { ok: false, erro: mensagem(e, 'Não foi possível estornar.') }
   }
@@ -69,11 +68,11 @@ export async function estornarMovimentoAction(movimentoId: string): Promise<Resu
 }
 
 export async function importarXmlAction(entrada: unknown): Promise<Resultado<{ entradaId: string }>> {
-  const { supabase, tenantId, sessao } = await exigirModulo('estoque')
+  const ctx = await exigirModulo('estoque')
   const r = validar(esquemaXmlNota, entrada)
   if (!r.ok) return falha(r.erros)
   try {
-    const entradaId = await criarEntradaDeXml(supabase, tenantId, r.dados.xml, nomeDe(sessao))
+    const entradaId = await criarEntradaDeXml(ctx.supabase, ctx.tenantId, r.dados.xml, autorDe(ctx))
     revalidar()
     return { ok: true, entradaId }
   } catch (e) {
@@ -82,11 +81,11 @@ export async function importarXmlAction(entrada: unknown): Promise<Resultado<{ e
 }
 
 export async function criarEntradaManualAction(entrada: unknown): Promise<Resultado<{ entradaId: string }>> {
-  const { supabase, tenantId, sessao } = await exigirModulo('estoque')
+  const ctx = await exigirModulo('estoque')
   const r = validar(esquemaEntradaManual, entrada)
   if (!r.ok) return falha(r.erros, r.porCampo)
   try {
-    const entradaId = await criarEntradaManual(supabase, tenantId, r.dados, nomeDe(sessao))
+    const entradaId = await criarEntradaManual(ctx.supabase, ctx.tenantId, r.dados, autorDe(ctx))
     revalidar()
     return { ok: true, entradaId }
   } catch (e) {
@@ -95,11 +94,11 @@ export async function criarEntradaManualAction(entrada: unknown): Promise<Result
 }
 
 export async function ligarItemEntradaAction(entrada: unknown): Promise<Resultado> {
-  const { supabase, tenantId } = await exigirModulo('estoque')
+  const ctx = await exigirModulo('estoque')
   const r = validar(esquemaLigarItem, entrada)
   if (!r.ok) return falha(r.erros, r.porCampo)
   try {
-    await ligarItemEntrada(supabase, tenantId, r.dados.itemId, r.dados.alvo, r.dados.fator)
+    await ligarItemEntrada(ctx.supabase, ctx.tenantId, r.dados.itemId, r.dados.alvo, r.dados.fator)
   } catch (e) {
     return { ok: false, erro: mensagem(e, 'Não foi possível ligar o item.') }
   }
@@ -108,11 +107,11 @@ export async function ligarItemEntradaAction(entrada: unknown): Promise<Resultad
 }
 
 export async function concluirEntradaAction(entradaId: string): Promise<Resultado<{ itens: number; contasCriadas: number }>> {
-  const { supabase, tenantId, sessao } = await exigirModulo('estoque')
+  const ctx = await exigirModulo('estoque')
   const r = validar(uuid, entradaId)
   if (!r.ok) return { ok: false, erro: 'Entrada inválida.' }
   try {
-    const res = await concluirEntrada(supabase, tenantId, r.dados, nomeDe(sessao))
+    const res = await concluirEntrada(ctx.supabase, ctx.tenantId, r.dados, autorDe(ctx))
     revalidar()
     revalidatePath('/painel/financeiro', 'layout')
     return { ok: true, ...res }
@@ -122,11 +121,11 @@ export async function concluirEntradaAction(entradaId: string): Promise<Resultad
 }
 
 export async function cancelarEntradaAction(entradaId: string): Promise<Resultado> {
-  const { supabase, tenantId } = await exigirModulo('estoque')
+  const ctx = await exigirModulo('estoque')
   const r = validar(uuid, entradaId)
   if (!r.ok) return { ok: false, erro: 'Entrada inválida.' }
   try {
-    await cancelarEntrada(supabase, tenantId, r.dados)
+    await cancelarEntrada(ctx.supabase, ctx.tenantId, r.dados)
   } catch (e) {
     return { ok: false, erro: mensagem(e, 'Não foi possível cancelar.') }
   }
@@ -135,11 +134,11 @@ export async function cancelarEntradaAction(entradaId: string): Promise<Resultad
 }
 
 export async function aplicarInventarioAction(entrada: unknown): Promise<Resultado<{ inventarioId: string }>> {
-  const { supabase, tenantId, sessao } = await exigirModulo('estoque')
+  const ctx = await exigirModulo('estoque')
   const r = validar(esquemaInventario, entrada)
   if (!r.ok) return falha(r.erros, r.porCampo)
   try {
-    const inventarioId = await aplicarInventario(supabase, tenantId, r.dados.descricao, r.dados.contagem, nomeDe(sessao))
+    const inventarioId = await aplicarInventario(ctx.supabase, ctx.tenantId, r.dados.descricao, r.dados.contagem, autorDe(ctx))
     revalidar()
     return { ok: true, inventarioId }
   } catch (e) {
@@ -148,11 +147,11 @@ export async function aplicarInventarioAction(entrada: unknown): Promise<Resulta
 }
 
 export async function configurarEstoqueProdutoAction(entrada: unknown): Promise<Resultado> {
-  const { supabase, tenantId } = await exigirModulo('estoque')
+  const ctx = await exigirModulo('estoque')
   const r = validar(esquemaEstoqueProduto, entrada)
   if (!r.ok) return falha(r.erros, r.porCampo)
   try {
-    await configurarEstoqueProduto(supabase, tenantId, r.dados.produtoId, r.dados)
+    await configurarEstoqueProduto(ctx.supabase, ctx.tenantId, r.dados.produtoId, r.dados)
   } catch (e) {
     return { ok: false, erro: mensagem(e, 'Não foi possível guardar.') }
   }
@@ -161,11 +160,11 @@ export async function configurarEstoqueProdutoAction(entrada: unknown): Promise<
 }
 
 export async function salvarInsumoAction(entrada: unknown): Promise<Resultado<{ id: string }>> {
-  const { supabase, tenantId } = await exigirModulo('producao')
+  const ctx = await exigirModulo('producao')
   const r = validar(esquemaInsumo, entrada)
   if (!r.ok) return falha(r.erros, r.porCampo)
   try {
-    const id = await salvarInsumo(supabase, tenantId, r.dados)
+    const id = await salvarInsumo(ctx.supabase, ctx.tenantId, r.dados)
     revalidar()
     return { ok: true, id }
   } catch (e) {
@@ -174,11 +173,11 @@ export async function salvarInsumoAction(entrada: unknown): Promise<Resultado<{ 
 }
 
 export async function salvarFichaAction(entrada: unknown): Promise<Resultado> {
-  const { supabase, tenantId } = await exigirModulo('producao')
+  const ctx = await exigirModulo('producao')
   const r = validar(esquemaFicha, entrada)
   if (!r.ok) return falha(r.erros, r.porCampo)
   try {
-    await salvarFicha(supabase, tenantId, r.dados.produtoId, r.dados.linhas)
+    await salvarFicha(ctx.supabase, ctx.tenantId, r.dados.produtoId, r.dados.linhas)
   } catch (e) {
     return { ok: false, erro: mensagem(e, 'Não foi possível guardar a ficha.') }
   }

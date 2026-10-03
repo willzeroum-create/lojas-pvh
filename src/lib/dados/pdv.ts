@@ -155,3 +155,17 @@ export async function vendasDoCaixa(supabase: Cliente, tenantId: string, sessaoI
     itens: (p.itens_pedido as unknown as Array<{ count: number }>)[0]?.count ?? 0,
   }))
 }
+
+/** Subtotal da venda pelos preços do catálogo, para conferir o limite de desconto antes de gravar. */
+export async function subtotalDaVenda(
+  supabase: Cliente,
+  tenantId: string,
+  itens: Array<{ produtoId: string; quantidade: number }>,
+): Promise<number> {
+  const precos = ouErro(
+    await supabase.from('produtos').select('id, preco, preco_promocional').eq('tenant_id', tenantId).in('id', [...new Set(itens.map((i) => i.produtoId))]),
+    'Não foi possível ler os preços',
+  )
+  const porId = new Map(precos.map((p) => [p.id, Number(p.preco_promocional ?? p.preco)]))
+  return Math.round(itens.reduce((s, i) => s + i.quantidade * (porId.get(i.produtoId) ?? 0) * 100, 0)) / 100
+}
