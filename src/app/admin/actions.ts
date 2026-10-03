@@ -28,6 +28,7 @@ import {
 import { importarCardapio } from '@/lib/dados/cardapio'
 import { eliminarArquivo, registarArquivo } from '@/lib/dados/arquivos'
 import { ErroDados } from '@/lib/dados/erros'
+import { definirModulo } from '@/lib/dados/modulos'
 import { criarOperador, removerOperador as removerOperadorDados } from '@/lib/dados/operadores'
 import { atualizarFichaTenant, criarTenant, definirSenhaMembro, marcarPublicado } from '@/lib/dados/tenants'
 import { importarDeFoto } from '@/lib/importador/foto'
@@ -41,6 +42,7 @@ import {
 } from '@/lib/validacao/cadeia'
 import { esquemaRegistarArquivo } from '@/lib/validacao/arquivos'
 import { esquemaImportacao } from '@/lib/validacao/cardapio'
+import { esquemaAlternarModulo } from '@/lib/validacao/modulos'
 import { esquemaNovoOperador } from '@/lib/validacao/operador'
 import { esquemaFichaTenant, esquemaNovaSenha, esquemaNovoTenant } from '@/lib/validacao/tenant'
 import { deFormData, uuid, validar } from '@/lib/validacao/zod'
@@ -220,6 +222,24 @@ export async function gravarImportacao(
   } catch (e) {
     return { ok: false, erro: mensagem(e, 'Não foi possível gravar o cardápio.') }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Módulos: o produto montado para cada cliente
+// ---------------------------------------------------------------------------
+
+export async function alternarModulo(entrada: unknown): Promise<Resultado> {
+  const { supabase } = await exigirConsole()
+  const r = validar(esquemaAlternarModulo, entrada)
+  if (!r.ok) return { ok: false, erro: r.erros[0] ?? 'Dados inválidos' }
+  try {
+    await definirModulo(supabase, r.dados.tenantId, r.dados.modulo, r.dados.ativo)
+  } catch (e) {
+    return { ok: false, erro: mensagem(e, 'Não foi possível mudar o módulo.') }
+  }
+  revalidatePath(`/admin/tenants/${r.dados.tenantId}`)
+  revalidatePath('/painel', 'layout')
+  return { ok: true }
 }
 
 // ---------------------------------------------------------------------------

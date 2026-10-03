@@ -21,6 +21,12 @@ values (
 )
 on conflict (id) do nothing;
 
+-- Módulos do painel: os mesmos que uma empresa nova recebe (ver modulosPadrao()).
+insert into public.tenant_modulos (tenant_id, modulo, ativo, ativado_em)
+select 'a0000000-0000-4000-8000-000000000001', m.modulo, true, now()
+  from (values ('pedidos'), ('cardapio'), ('resumo')) as m (modulo)
+on conflict (tenant_id, modulo) do nothing;
+
 insert into public.lojas (id, tenant_id, nome, endereco, horarios, taxa_entrega, pedido_minimo, raio_entrega_km)
 values (
   'b0000000-0000-4000-8000-000000000001',

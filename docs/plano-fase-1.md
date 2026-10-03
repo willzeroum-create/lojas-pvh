@@ -309,3 +309,25 @@ construindo o que falta.
   `/admin/cadeia` (etapas pendentes e em curso em todas as empresas, com
   prazos e responsáveis). Os cartões do topo do console ligam a estas páginas.
 - **Equipa** (`/admin/equipa`) e **login por link** (`/auth/confirmar`).
+
+---
+
+## 11. Módulos por empresa (acrescentado em 2026-10-03)
+
+O começo do ERP modular: cada cliente recebe só o que usa, contra o "template
+com tudo" dos concorrentes locais.
+
+- **Catálogo em código** (`src/lib/modulos/catalogo.ts`): id, nome, grupo,
+  dependências, separador do painel e maturidade — `funcional` (pronto),
+  `pre_funcional` (pronto, falta a credencial do cliente, ver `ativacao`) ou
+  `planejado` (no roteiro; aparece no console mas não liga). Loja e Conta são
+  essenciais; Pedidos, Cardápio e Resumo vêm ligados por defeito.
+- **Estado por empresa** (`tenant_modulos`, migração 0008): só operadores
+  ligam e desligam; membros lêem os do próprio tenant; `anon` só sabe se um
+  módulo está ligado (a página pública esconde o cardápio e recusa pedidos
+  sem o módulo `cardapio`). `configuracao` nunca guarda segredos.
+- **Painel**: os separadores saem dos módulos activos; cada rota e action de
+  módulo usa `exigirModulo(id)`.
+- **Console**: secção "Módulos do cliente" na ficha do tenant, com
+  interruptores e as razões quando não se pode ligar ou desligar.
+- Projecto Supabase existente: aplicar `supabase/atualizacao-0008.sql`.

@@ -2,7 +2,7 @@ import { ChevronRight, Plus, Settings2 } from 'lucide-react'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { exigirPainel } from '@/lib/auth/guardas'
+import { exigirModulo } from '@/lib/auth/guardas'
 import { listarCategoriasComProdutos } from '@/lib/dados/cardapio'
 import { formatarBRL } from '@/lib/dominio/moeda'
 import { InterruptorDisponibilidade } from './_components/interruptor-disponibilidade'
@@ -10,7 +10,7 @@ import { InterruptorDisponibilidade } from './_components/interruptor-disponibil
 export const metadata: Metadata = { title: 'Cardápio' }
 
 export default async function PaginaCardapio() {
-  const { supabase, tenantId } = await exigirPainel()
+  const { supabase, tenantId } = await exigirModulo('cardapio')
   const categorias = await listarCategoriasComProdutos(supabase, tenantId)
 
   return (

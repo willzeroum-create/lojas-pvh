@@ -10,10 +10,22 @@ type Props = {
   ocupado?: boolean
   /** `grande` tem 48 px de alto: é o interruptor de disponibilidade do cardápio. */
   tamanho?: 'normal' | 'grande'
+  /** Texto do estado ao lado; por defeito, o do cardápio. */
+  textos?: { ligado: string; desligado: string }
 }
 
+const TEXTOS_CARDAPIO = { ligado: 'Disponível', desligado: 'Esgotado' }
+
 /** Interruptor acessível com alvo de toque generoso. O texto do estado fica ao lado. */
-export function Interruptor({ ligado, onMudar, rotulo, desativado, ocupado, tamanho = 'normal' }: Props) {
+export function Interruptor({
+  ligado,
+  onMudar,
+  rotulo,
+  desativado,
+  ocupado,
+  tamanho = 'normal',
+  textos = TEXTOS_CARDAPIO,
+}: Props) {
   const grande = tamanho === 'grande'
   return (
     <button
@@ -47,7 +59,7 @@ export function Interruptor({ ligado, onMudar, rotulo, desativado, ocupado, tama
       <span
         className={cn('font-semibold', grande ? 'text-sm' : 'text-xs', ligado ? 'text-verde' : 'text-cinza')}
       >
-        {ligado ? 'Disponível' : 'Esgotado'}
+        {ligado ? textos.ligado : textos.desligado}
       </span>
     </button>
   )

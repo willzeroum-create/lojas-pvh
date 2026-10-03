@@ -1,5 +1,6 @@
 import { exigirPainel } from '@/lib/auth/guardas'
 import { Etiqueta } from '@/components/ui/etiqueta'
+import { separadoresDoPainel } from '@/lib/modulos/catalogo'
 import { BannerImpersonacao } from './_components/banner-impersonacao'
 import { NavPainel } from './_components/nav-painel'
 
@@ -15,15 +16,16 @@ const ROTULO_STATUS = {
 export const dynamic = 'force-dynamic'
 
 /**
- * Painel do comerciante: cabeçalho fino, conteúdo, barra de cinco separadores
- * fixa em baixo (no computador passa para o lado). Sem menus escondidos.
+ * Painel do comerciante: cabeçalho fino, conteúdo, barra com um separador por
+ * módulo ligado, fixa em baixo (no computador passa para o lado). Sem menus
+ * escondidos.
  */
 export default async function LayoutPainel({ children }: { children: React.ReactNode }) {
-  const { sessao, tenant } = await exigirPainel()
+  const { sessao, tenant, modulos } = await exigirPainel()
 
   return (
     <div className="flex min-h-dvh flex-col sm:flex-row">
-      <NavPainel />
+      <NavPainel separadores={separadoresDoPainel(modulos)} />
       <div className="flex min-w-0 flex-1 flex-col">
         {sessao.impersonando && <BannerImpersonacao nome={tenant.nome_fantasia} />}
         {tenant.status === 'suspenso' && (

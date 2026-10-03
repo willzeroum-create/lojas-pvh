@@ -17,6 +17,7 @@ const TABELAS_COM_TENANT = [
   'itens_pedido',
   'insumos',
   'fichas',
+  'tenant_modulos',
 ] as const
 
 type Cenario = {
@@ -111,6 +112,10 @@ async function criarTenantCompleto(bd: BaseDeTeste, slug: string, sufixo: string
   await db.query(
     `insert into public.fichas (tenant_id, produto_id, insumo_id, quantidade) values ($1, $2, $3, 1)`,
     [tenant, produto, insumo],
+  )
+  await db.query(
+    `insert into public.tenant_modulos (tenant_id, modulo, configuracao) values ($1, 'pedidos', '{}'), ($1, 'cardapio', '{"nota": "interna"}')`,
+    [tenant],
   )
   return { tenant, loja, produto }
 }
@@ -334,6 +339,73 @@ describe('cadeia de produção e notas (só operadores)', () => {
       c.bd.consultar(
         { tipo: 'servidor' },
         `insert into public.cadeia_etapas (tenant_id, frente, chave, titulo) values ($1, 'Canais', 'ok', 'X')`,
+        [c.tenantA],
+      ),
+    ).rejects.toThrow(/check constraint/)
+  })
+})
+
+describe('módulos por empresa', () => {
+  it('um dono não liga módulos, nem no próprio tenant', async () => {
+    await expect(
+      c.bd.consultar(
+        { tipo: 'utilizador', id: c.donoA },
+        `insert into public.tenant_modulos (tenant_id, modulo) values ($1, 'resumo')`,
+        [c.tenantA],
+      ),
+    ).rejects.toThrow(/row-level security/)
+  })
+
+  it('um dono não desliga módulos: o update não afecta linhas', async () => {
+    await c.bd.consultar(
+      { tipo: 'utilizador', id: c.donoA },
+      `update public.tenant_modulos set ativo = false where tenant_id = $1`,
+      [c.tenantA],
+    )
+    const linhas = await c.bd.consultar<{ ativo: boolean }>(
+      { tipo: 'servidor' },
+      'select ativo from public.tenant_modulos where tenant_id = $1',
+      [c.tenantA],
+    )
+    expect(linhas.every((l) => l.ativo)).toBe(true)
+  })
+
+  it('o operador liga e desliga módulos de qualquer tenant', async () => {
+    await c.bd.consultar(
+      { tipo: 'utilizador', id: c.operador },
+      `insert into public.tenant_modulos (tenant_id, modulo) values ($1, 'resumo')`,
+      [c.tenantB],
+    )
+    await c.bd.consultar(
+      { tipo: 'utilizador', id: c.operador },
+      `update public.tenant_modulos set ativo = false where tenant_id = $1 and modulo = 'resumo'`,
+      [c.tenantB],
+    )
+    const [linha] = await c.bd.consultar<{ ativo: boolean }>(
+      { tipo: 'servidor' },
+      `select ativo from public.tenant_modulos where tenant_id = $1 and modulo = 'resumo'`,
+      [c.tenantB],
+    )
+    expect(linha!.ativo).toBe(false)
+  })
+
+  it('anon sabe se um módulo está ligado, mas não lê a configuração', async () => {
+    const linhas = await c.bd.consultar<{ modulo: string }>(
+      { tipo: 'anon' },
+      'select modulo from public.tenant_modulos where tenant_id = $1 and ativo order by modulo',
+      [c.tenantB],
+    )
+    expect(linhas.map((l) => l.modulo)).toEqual(['cardapio', 'pedidos'])
+    await expect(
+      c.bd.consultar({ tipo: 'anon' }, 'select configuracao from public.tenant_modulos'),
+    ).rejects.toThrow(/permission denied/)
+  })
+
+  it('rejeita ids de módulo fora do padrão', async () => {
+    await expect(
+      c.bd.consultar(
+        { tipo: 'servidor' },
+        `insert into public.tenant_modulos (tenant_id, modulo) values ($1, 'Fiscal Novo')`,
         [c.tenantA],
       ),
     ).rejects.toThrow(/check constraint/)

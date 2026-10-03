@@ -5,6 +5,9 @@ import 'server-only'
  * devolve o contexto de que a rota precisa ou redirecciona.
  */
 import { redirect } from 'next/navigation'
+import { cache } from 'react'
+import { modulosAtivos } from '@/lib/dados/modulos'
+import type { ModuloId } from '@/lib/modulos/catalogo'
 import { clienteServidor, type Cliente } from '@/lib/supabase/server'
 import { obterSessao, type Sessao, type TenantResumo } from './sessao'
 
@@ -16,7 +19,12 @@ export type ContextoTenant = {
 export type ContextoPainel = ContextoTenant & {
   sessao: Sessao
   tenant: TenantResumo
+  /** Módulos activos do tenant: decidem os separadores e as rotas do painel. */
+  modulos: ReadonlySet<ModuloId>
 }
+
+/** Lidos uma vez por pedido: layout, página e actions partilham o resultado. */
+const modulosDoTenant = cache(async (tenantId: string) => modulosAtivos(await clienteServidor(), tenantId))
 
 export async function exigirSessao(): Promise<Sessao> {
   const sessao = await obterSessao()
@@ -36,7 +44,15 @@ export async function exigirPainel(): Promise<ContextoPainel> {
     tenant: sessao.tenantAtivo,
     tenantId: sessao.tenantAtivo.id,
     supabase: await clienteServidor(),
+    modulos: await modulosDoTenant(sessao.tenantAtivo.id),
   }
+}
+
+/** Rota ou action de um módulo: sem o módulo ligado, volta ao início do painel. */
+export async function exigirModulo(modulo: ModuloId): Promise<ContextoPainel> {
+  const contexto = await exigirPainel()
+  if (!contexto.modulos.has(modulo)) redirect('/painel')
+  return contexto
 }
 
 /** Console interno: só operadores. */

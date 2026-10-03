@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { exigirPainel } from '@/lib/auth/guardas'
+import { exigirModulo } from '@/lib/auth/guardas'
 import { obterLojaPrincipal } from '@/lib/dados/lojas'
 import { listarPedidosDoDia } from '@/lib/dados/pedidos'
 import { ListaPedidos } from './_components/lista-pedidos'
@@ -7,7 +7,7 @@ import { ListaPedidos } from './_components/lista-pedidos'
 export const metadata: Metadata = { title: 'Pedidos' }
 
 export default async function PaginaPedidos() {
-  const { supabase, tenantId } = await exigirPainel()
+  const { supabase, tenantId } = await exigirModulo('pedidos')
   const [pedidos, loja] = await Promise.all([
     listarPedidosDoDia(supabase, tenantId),
     obterLojaPrincipal(supabase, tenantId),

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { NumeroGrande } from '@/components/ui/cartao'
-import { exigirPainel } from '@/lib/auth/guardas'
+import { exigirModulo } from '@/lib/auth/guardas'
 import { obterLojaPrincipal } from '@/lib/dados/lojas'
 import { listarPedidosDaSemana } from '@/lib/dados/pedidos'
 import { formatarBRL } from '@/lib/dominio/moeda'
@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: 'Resumo' }
 
 /** Números grandes e uma lista. Nada de gráficos. */
 export default async function PaginaResumo() {
-  const { supabase, tenantId } = await exigirPainel()
+  const { supabase, tenantId } = await exigirModulo('resumo')
   const [pedidos, loja] = await Promise.all([
     listarPedidosDaSemana(supabase, tenantId),
     obterLojaPrincipal(supabase, tenantId),

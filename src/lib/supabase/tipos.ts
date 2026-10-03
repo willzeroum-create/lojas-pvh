@@ -247,6 +247,16 @@ export type FichaLinha = {
   quantidade: number
 }
 
+export type TenantModuloLinha = {
+  tenant_id: string
+  modulo: string
+  ativo: boolean
+  configuracao: Json
+  ativado_em: string | null
+  criado_em: string
+  atualizado_em: string
+}
+
 // ---------------------------------------------------------------------------
 // Database
 // ---------------------------------------------------------------------------
@@ -557,6 +567,19 @@ export type Database = {
             isOneToOne: false
             referencedRelation: 'insumos'
             referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
+      tenant_modulos: Tabela<
+        TenantModuloLinha,
+        'ativo' | 'configuracao' | 'ativado_em' | 'criado_em' | 'atualizado_em',
+        [
+          {
+            foreignKeyName: 'tenant_modulos_tenant_id_fkey'
+            columns: ['tenant_id']
+            isOneToOne: false
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       >

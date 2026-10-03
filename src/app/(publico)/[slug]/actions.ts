@@ -13,6 +13,7 @@
 import { paraCatalogoCarrinho } from '@/lib/canais/cardapio'
 import { obterCatalogo } from '@/lib/dados/cardapio'
 import { obterLojaPrincipal } from '@/lib/dados/lojas'
+import { moduloLigado } from '@/lib/dados/modulos'
 import { registarPedido } from '@/lib/dados/pedidos'
 import { calcularPedido } from '@/lib/dominio/carrinho'
 import { estadoLoja } from '@/lib/dominio/horario'
@@ -34,7 +35,7 @@ export async function criarPedido(entrada: unknown): Promise<ResultadoCriarPedid
     .select('id, nome_fantasia, whatsapp, status')
     .eq('id', dados.tenantId)
     .maybeSingle()
-  if (!tenant || tenant.status === 'suspenso')
+  if (!tenant || tenant.status === 'suspenso' || !(await moduloLigado(anon, tenant.id, 'cardapio')))
     return { ok: false, erros: ['Esta loja não está aceitando pedidos online no momento.'] }
 
   const loja = await obterLojaPrincipal(anon, tenant.id)

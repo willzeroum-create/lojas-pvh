@@ -13,6 +13,7 @@ drop policy if exists "fotos: tenant substitui" on storage.objects;
 drop policy if exists "fotos: tenant apaga" on storage.objects;
 
 drop table if exists
+  public.tenant_modulos,
   public.arquivos, public.notas_internas, public.cadeia_registos, public.cadeia_etapas,
   public.fichas, public.insumos, public.tenant_onboarding,
   public.itens_pedido, public.pedidos, public.opcoes, public.grupos_opcao,

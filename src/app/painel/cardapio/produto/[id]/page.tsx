@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { exigirPainel } from '@/lib/auth/guardas'
+import { exigirModulo } from '@/lib/auth/guardas'
 import { obterProdutoComGrupos } from '@/lib/dados/cardapio'
 import { FormularioProduto } from '../../_components/formulario-produto'
 
@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: 'Produto' }
 
 export default async function PaginaProduto(props: PageProps<'/painel/cardapio/produto/[id]'>) {
   const [{ id }, { categoria, criado }] = await Promise.all([props.params, props.searchParams])
-  const { supabase, tenantId } = await exigirPainel()
+  const { supabase, tenantId } = await exigirModulo('cardapio')
   const { data: categorias } = await supabase
     .from('categorias')
     .select('id, nome')

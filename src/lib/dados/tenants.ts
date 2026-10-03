@@ -6,6 +6,7 @@ import type { CadeiaEtapaLinha, TenantLinha, TenantStatus } from '@/lib/supabase
 import type { ContaTenant, FichaTenant, NovoTenant } from '@/lib/validacao/tenant'
 import { ErroDados, garantir, ouErro } from './erros'
 import { materializarCadeia } from './cadeia'
+import { ligarModulosPadrao } from './modulos'
 
 /** Colunas que `anon` pode ler. Nunca usar `*` em `tenants` na página pública. */
 const COLUNAS_PUBLICAS =
@@ -113,8 +114,8 @@ export async function marcarPublicado(admin: Cliente, tenantId: string, publicad
 }
 
 /**
- * Cria o tenant completo: conta, loja principal, cadeia de produção e o
- * utilizador dono. Não há transacção entre Auth e Postgres; se algo falhar a
+ * Cria o tenant completo: conta, loja principal, cadeia de produção, módulos
+ * por defeito e o utilizador dono. Não há transacção entre Auth e Postgres; se algo falhar a
  * meio, o que já foi criado é desfeito.
  */
 export async function criarTenant(
@@ -155,6 +156,7 @@ export async function criarTenant(
     )
 
     await materializarCadeia(admin, tenant.id, { concluirCadastro: true })
+    await ligarModulosPadrao(admin, tenant.id)
 
     const { data: utilizador, error: erroAuth } = await admin.auth.admin.createUser({
       email: dados.dono_email,

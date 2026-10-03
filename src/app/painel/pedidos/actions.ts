@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { exigirPainel } from '@/lib/auth/guardas'
+import { exigirModulo } from '@/lib/auth/guardas'
 import { ErroDados } from '@/lib/dados/erros'
 import {
   atualizarStatusPedido,
@@ -15,7 +15,7 @@ import { validar } from '@/lib/validacao/zod'
 export async function mudarStatus(entrada: unknown): Promise<{ ok: true } | { ok: false; erro: string }> {
   const r = validar(esquemaStatusPedido, entrada)
   if (!r.ok) return { ok: false, erro: r.erros[0] ?? 'Dados inválidos' }
-  const { supabase, tenantId } = await exigirPainel()
+  const { supabase, tenantId } = await exigirModulo('pedidos')
   try {
     await atualizarStatusPedido(supabase, tenantId, r.dados.pedidoId, r.dados.status)
   } catch (e) {
@@ -27,12 +27,12 @@ export async function mudarStatus(entrada: unknown): Promise<{ ok: true } | { ok
 
 /** Usado pelo Realtime: o evento traz só a linha do pedido, sem os itens. */
 export async function obterPedido(pedidoId: string): Promise<PedidoComItens | null> {
-  const { supabase, tenantId } = await exigirPainel()
+  const { supabase, tenantId } = await exigirModulo('pedidos')
   return obterPedidoComItens(supabase, tenantId, pedidoId)
 }
 
 /** Reserva do Realtime: polling curto. */
 export async function listarPedidos(): Promise<PedidoComItens[]> {
-  const { supabase, tenantId } = await exigirPainel()
+  const { supabase, tenantId } = await exigirModulo('pedidos')
   return listarPedidosDoDia(supabase, tenantId)
 }

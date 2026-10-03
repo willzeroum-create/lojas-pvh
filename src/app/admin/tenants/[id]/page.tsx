@@ -10,11 +10,13 @@ import { urlPublica } from '@/lib/config/marca'
 import { contarArquivos } from '@/lib/dados/arquivos'
 import { contarNotas, obterCadeia } from '@/lib/dados/cadeia'
 import { contarProdutos } from '@/lib/dados/cardapio'
+import { listarModulosDoTenant } from '@/lib/dados/modulos'
 import { listarMembros, obterTenant } from '@/lib/dados/tenants'
 import { clienteAdmin } from '@/lib/supabase/server'
 import type { TenantStatus } from '@/lib/supabase/tipos'
 import { cn } from '@/lib/utils/cn'
 import { entrarComoTenant } from '../../actions'
+import { EditorModulos } from './_components/editor-modulos'
 import { FormularioFicha } from './_components/formulario-ficha'
 import { FormularioSenha } from './_components/formulario-senha'
 import { LinkDeAcesso } from './_components/link-de-acesso'
@@ -37,12 +39,13 @@ export default async function PaginaFichaTenant(props: PageProps<'/admin/tenants
   const tenant = await obterTenant(supabase, id)
   if (!tenant) notFound()
 
-  const [frentes, membros, produtos, totalNotas, totalArquivos] = await Promise.all([
+  const [frentes, membros, produtos, totalNotas, totalArquivos, modulos] = await Promise.all([
     obterCadeia(supabase, id),
     listarMembros(clienteAdmin(), id),
     contarProdutos(supabase, id),
     contarNotas(supabase, id),
     contarArquivos(supabase, id),
+    listarModulosDoTenant(supabase, id),
   ])
   const geral = resumirCadeia(frentes)
 
@@ -169,6 +172,14 @@ export default async function PaginaFichaTenant(props: PageProps<'/admin/tenants
           <FormularioFicha tenant={tenant} />
         </section>
       </div>
+
+      <section id="modulos" className="rounded-lg border border-areia/70 bg-branco p-4 shadow-cartao">
+        <h2 className="text-lg font-bold">Módulos do cliente</h2>
+        <p className="mb-3 text-sm text-cinza">
+          O painel do cliente mostra só o que estiver ligado aqui. Monte o produto com o que ele usa.
+        </p>
+        <EditorModulos tenantId={tenant.id} ligados={modulos.filter((m) => m.ativo).map((m) => m.modulo)} />
+      </section>
     </div>
   )
 }

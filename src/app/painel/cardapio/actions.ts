@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { exigirPainel } from '@/lib/auth/guardas'
+import { exigirModulo } from '@/lib/auth/guardas'
 import {
   atualizarCategoria,
   atualizarProduto,
@@ -28,7 +28,7 @@ export async function alternarDisponibilidade(
   produtoId: string,
   disponivel: boolean,
 ): Promise<{ ok: boolean }> {
-  const { supabase, tenantId } = await exigirPainel()
+  const { supabase, tenantId } = await exigirModulo('cardapio')
   try {
     await definirDisponibilidade(supabase, tenantId, uuid.parse(produtoId), disponivel)
   } catch {
@@ -39,7 +39,7 @@ export async function alternarDisponibilidade(
 }
 
 export async function guardarFotoProduto(produtoId: string, url: string | null): Promise<void> {
-  const { supabase, tenantId } = await exigirPainel()
+  const { supabase, tenantId } = await exigirModulo('cardapio')
   await definirFotoProduto(supabase, tenantId, uuid.parse(produtoId), url)
   revalidatePath('/painel/cardapio')
 }
@@ -55,7 +55,7 @@ export async function guardarCategoria(
 ): Promise<EstadoFormulario> {
   const r = validar(esquemaCategoria, deFormData(fd))
   if (!r.ok) return { erro: 'Confira os campos.', porCampo: r.porCampo }
-  const { supabase, tenantId } = await exigirPainel()
+  const { supabase, tenantId } = await exigirModulo('cardapio')
   try {
     if (categoriaId) await atualizarCategoria(supabase, tenantId, categoriaId, r.dados)
     else await criarCategoria(supabase, tenantId, r.dados)
@@ -67,7 +67,7 @@ export async function guardarCategoria(
 }
 
 export async function apagarCategoria(categoriaId: string): Promise<void> {
-  const { supabase, tenantId } = await exigirPainel()
+  const { supabase, tenantId } = await exigirModulo('cardapio')
   await eliminarCategoria(supabase, tenantId, uuid.parse(categoriaId))
   revalidatePath('/painel/cardapio')
   redirect('/painel/cardapio')
@@ -98,7 +98,7 @@ export async function guardarProduto(
     return { erro: 'Grupos de opção inválidos.' }
   }
 
-  const { supabase, tenantId } = await exigirPainel()
+  const { supabase, tenantId } = await exigirModulo('cardapio')
   let id = produtoId
   try {
     if (id) await atualizarProduto(supabase, tenantId, id, r.dados)
@@ -113,7 +113,7 @@ export async function guardarProduto(
 }
 
 export async function apagarProduto(produtoId: string): Promise<void> {
-  const { supabase, tenantId } = await exigirPainel()
+  const { supabase, tenantId } = await exigirModulo('cardapio')
   await eliminarProduto(supabase, tenantId, uuid.parse(produtoId))
   revalidatePath('/painel/cardapio')
   redirect('/painel/cardapio')

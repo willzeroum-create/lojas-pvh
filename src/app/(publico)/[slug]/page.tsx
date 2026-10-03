@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { apenasDisponiveis } from '@/lib/canais/cardapio'
 import { obterCatalogo } from '@/lib/dados/cardapio'
 import { obterLojaPrincipal } from '@/lib/dados/lojas'
+import { moduloLigado } from '@/lib/dados/modulos'
 import { estadoLoja } from '@/lib/dominio/horario'
 import { clienteAnonimo } from '@/lib/supabase/server'
 import { CabecalhoLoja } from './_components/cabecalho-loja'
@@ -35,12 +36,14 @@ export default async function PaginaPublica(props: PageProps<'/[slug]'>) {
   if (!tenant) notFound()
 
   const supabase = clienteAnonimo()
-  const [loja, catalogo] = await Promise.all([
+  const [loja, catalogo, comCardapio] = await Promise.all([
     obterLojaPrincipal(supabase, tenant.id),
     obterCatalogo(supabase, tenant.id),
+    moduloLigado(supabase, tenant.id, 'cardapio'),
   ])
 
-  if (tenant.status === 'suspenso' || !loja) {
+  // Sem o módulo do cardápio (ou suspensa) a empresa continua encontrável: nome, contacto e endereço.
+  if (tenant.status === 'suspenso' || !loja || !comCardapio) {
     return <PaginaReduzida tenant={tenant} loja={loja} />
   }
 

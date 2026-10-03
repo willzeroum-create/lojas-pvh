@@ -1,20 +1,24 @@
 'use client'
 
-import { BarChart3, ClipboardList, Store, UserRound, UtensilsCrossed } from 'lucide-react'
+import { BarChart3, ClipboardList, Store, UserRound, UtensilsCrossed, type LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import type { IconeModulo, Separador } from '@/lib/modulos/catalogo'
 import { cn } from '@/lib/utils/cn'
 
-const SEPARADORES = [
-  { href: '/painel/pedidos', rotulo: 'Pedidos', Icone: ClipboardList },
-  { href: '/painel/cardapio', rotulo: 'Cardápio', Icone: UtensilsCrossed },
-  { href: '/painel/loja', rotulo: 'Loja', Icone: Store },
-  { href: '/painel/resumo', rotulo: 'Resumo', Icone: BarChart3 },
-  { href: '/painel/conta', rotulo: 'Conta', Icone: UserRound },
-] as const
+const ICONES: Record<IconeModulo, LucideIcon> = {
+  pedidos: ClipboardList,
+  cardapio: UtensilsCrossed,
+  loja: Store,
+  resumo: BarChart3,
+  conta: UserRound,
+}
 
-/** Cinco separadores, sempre visíveis. Alvos de 48 px ou mais. */
-export function NavPainel() {
+/**
+ * Um separador por módulo activo, sempre visíveis. Alvos de 48 px ou mais.
+ * No telemóvel a barra divide a largura pelos separadores que existirem.
+ */
+export function NavPainel({ separadores }: { separadores: Separador[] }) {
   const caminho = usePathname()
   return (
     <nav
@@ -24,8 +28,12 @@ export function NavPainel() {
         'sm:static sm:w-52 sm:shrink-0 sm:border-t-0 sm:border-r sm:pb-0',
       )}
     >
-      <ul className="grid grid-cols-5 sm:flex sm:flex-col sm:gap-1 sm:p-3 sm:pt-6">
-        {SEPARADORES.map(({ href, rotulo, Icone }) => {
+      <ul
+        className="grid sm:flex sm:flex-col sm:gap-1 sm:p-3 sm:pt-6"
+        style={{ gridTemplateColumns: `repeat(${separadores.length}, minmax(0, 1fr))` }}
+      >
+        {separadores.map(({ href, rotulo, icone }) => {
+          const Icone = ICONES[icone]
           const activo = caminho.startsWith(href)
           return (
             <li key={href}>
