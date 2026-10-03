@@ -32,7 +32,7 @@ export type GrupoModulo = keyof typeof GRUPOS_MODULO
 export type Maturidade = 'funcional' | 'pre_funcional' | 'planejado'
 
 /** Ícones dos separadores do painel; o componente de navegação traduz o nome. */
-export type IconeModulo = 'pdv' | 'caixa' | 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
+export type IconeModulo = 'pdv' | 'caixa' | 'comandas' | 'cozinha' | 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
 
 export type ModuloModelo = {
   id: string
@@ -123,18 +123,20 @@ export const MODULOS = [
   {
     id: 'comandas',
     nome: 'Comandas e mesas',
-    descricao: 'Comanda pelo celular do garçom, mesas e conta dividida.',
+    descricao: 'Mapa de mesas, comanda pelo celular, cozinha na hora, conta dividida e taxa de serviço.',
     grupo: 'vendas',
-    maturidade: 'planejado',
-    requer: ['pedidos'],
+    maturidade: 'funcional',
+    requer: ['pedidos', 'caixa'],
+    painel: { href: '/painel/comandas', rotulo: 'Mesas', icone: 'comandas', ordem: 7 },
   },
   {
     id: 'cozinha',
     nome: 'Painel da cozinha',
-    descricao: 'Pedidos na tela da cozinha, por estação e tempo de preparo.',
+    descricao: 'Pedidos na tela da cozinha por estação, com tempo de espera, alerta de atraso e pronto num toque.',
     grupo: 'operacao',
-    maturidade: 'planejado',
+    maturidade: 'funcional',
     requer: ['pedidos'],
+    painel: { href: '/painel/cozinha', rotulo: 'Cozinha', icone: 'cozinha', ordem: 12 },
   },
   {
     id: 'delivery',

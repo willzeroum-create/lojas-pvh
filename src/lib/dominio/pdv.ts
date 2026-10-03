@@ -20,17 +20,13 @@ export type PagamentoVenda = { forma: FormaRecebimento; valor: number }
 export type ItemCalculado = ItemVenda & { desconto: number; total: number }
 
 export type CalculoVenda =
-  | {
+  | ({
       ok: true
       itens: ItemCalculado[]
       subtotal: number
       desconto: number
       total: number
-      pago: number
-      troco: number
-      /** Pagamentos como se gravam: o troco sai do dinheiro. */
-      pagamentos: Array<PagamentoVenda & { troco: number }>
-    }
+    } & PagamentosDistribuidos)
   | { ok: false; erro: string; falta?: number }
 
 const c = (v: number) => Math.round(v * 100)
@@ -56,15 +52,36 @@ export function calcularVenda(itens: readonly ItemVenda[], descontoGeral: number
   if (descontoTotal > subtotal) return { ok: false, erro: 'O desconto passa do valor da venda.' }
   const total = subtotal - descontoTotal
 
-  const pago = pagamentos.reduce((s, p) => s + c(p.valor), 0)
-  if (pagamentos.some((p) => !(p.valor > 0))) return { ok: false, erro: 'Valor de pagamento inválido.' }
-  if (pago < total) return { ok: false, erro: 'Falta receber.', falta: r(total - pago) }
+  const pagos = distribuirPagamentos(r(total), pagamentos)
+  if (!pagos.ok) return pagos
+  return { ok: true, itens: calculados, subtotal: r(subtotal), desconto: r(descontoTotal), total: r(total), ...pagos.valor }
+}
 
-  const excesso = pago - total
+export type PagamentosDistribuidos = {
+  pago: number
+  troco: number
+  /** Pagamentos como se gravam: o troco sai do dinheiro. */
+  pagamentos: Array<PagamentoVenda & { troco: number }>
+}
+
+/**
+ * Confere os pagamentos contra um total (venda de balcão ou conta da mesa) e
+ * tira o troco do dinheiro, a começar pelo último pagamento em dinheiro.
+ */
+export function distribuirPagamentos(
+  total: number,
+  pagamentos: readonly PagamentoVenda[],
+): { ok: true; valor: PagamentosDistribuidos } | { ok: false; erro: string; falta?: number } {
+  const totalC = c(total)
+  if (pagamentos.length === 0) return { ok: false, erro: 'Escolha a forma de pagamento.' }
+  if (pagamentos.some((p) => !(p.valor > 0))) return { ok: false, erro: 'Valor de pagamento inválido.' }
+  const pago = pagamentos.reduce((s, p) => s + c(p.valor), 0)
+  if (pago < totalC) return { ok: false, erro: 'Falta receber.', falta: r(totalC - pago) }
+
+  const excesso = pago - totalC
   const dinheiro = pagamentos.filter((p) => p.forma === 'dinheiro').reduce((s, p) => s + c(p.valor), 0)
   if (excesso > dinheiro) return { ok: false, erro: 'Só há troco em dinheiro: o valor pago em outras formas passa do total.' }
 
-  // O troco sai do(s) pagamento(s) em dinheiro, a começar pelo último.
   let trocoRestante = excesso
   const gravados = [...pagamentos].map((p) => ({ ...p, troco: 0 }))
   for (let k = gravados.length - 1; k >= 0 && trocoRestante > 0; k--) {
@@ -74,17 +91,20 @@ export function calcularVenda(itens: readonly ItemVenda[], descontoGeral: number
     p.troco = r(tira)
     trocoRestante -= tira
   }
+  return { ok: true, valor: { pago: r(pago), troco: r(excesso), pagamentos: gravados } }
+}
 
-  return {
-    ok: true,
-    itens: calculados,
-    subtotal: r(subtotal),
-    desconto: r(descontoTotal),
-    total: r(total),
-    pago: r(pago),
-    troco: r(excesso),
-    pagamentos: gravados,
-  }
+/** Divide um total entre pessoas; os centavos que sobram ficam com a primeira. */
+export function dividirConta(total: number, pessoas: number): number[] {
+  if (!Number.isInteger(pessoas) || pessoas < 1) throw new Error('número de pessoas inválido')
+  const totalC = c(total)
+  const base = Math.floor(totalC / pessoas)
+  return Array.from({ length: pessoas }, (_, i) => r(base + (i === 0 ? totalC - base * pessoas : 0)))
+}
+
+/** Taxa de serviço (ex.: 10%) sobre o valor dos itens, arredondada ao centavo. */
+export function taxaServico(subtotal: number, percentual: number): number {
+  return r(Math.round((c(subtotal) * percentual) / 100))
 }
 
 export type EtiquetaBalanca = { codigoProduto: string; tipo: 'preco' | 'peso'; valor: number }

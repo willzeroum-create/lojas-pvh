@@ -26,6 +26,7 @@ const CANAIS: Record<CanalPedido, string> = {
   balcao: 'Balcão',
   ifood: 'iFood',
   '99food': '99Food',
+  mesa: 'Mesa',
 }
 
 const FINALIDADES: Record<ConsentimentoLinha['finalidade'], string> = {

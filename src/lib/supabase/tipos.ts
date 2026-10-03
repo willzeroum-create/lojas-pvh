@@ -32,7 +32,9 @@ type Tabela<Linha, Opcionais extends keyof Linha, Relacoes extends Relacao[] = [
 // ---------------------------------------------------------------------------
 export type TenantStatus = 'onboarding' | 'ativo' | 'suspenso' | 'cancelado'
 export type PapelMembro = 'dono' | 'funcionario'
-export type CanalPedido = 'cardapio' | 'whatsapp' | 'balcao' | 'ifood' | '99food'
+export type CanalPedido = 'cardapio' | 'whatsapp' | 'balcao' | 'ifood' | '99food' | 'mesa'
+export type EstadoPreparo = 'aguardando' | 'em_preparo' | 'pronto' | 'entregue' | 'cancelado'
+export type EstadoComanda = 'aberta' | 'conta' | 'fechada' | 'cancelada'
 export type PedidoStatus = 'novo' | 'aceite' | 'pronto' | 'concluido' | 'cancelado'
 export type TipoEntrega = 'entrega' | 'retirada'
 export type FormaPagamento = 'pix' | 'dinheiro' | 'cartao'
@@ -146,6 +148,7 @@ export type PedidoLinha = {
   total: number
   forma_pagamento: FormaPagamento
   troco_para: number | null
+  taxa_servico: number
   status: PedidoStatus
   cancelado_motivo: string | null
   caixa_sessao_id: string | null
@@ -166,6 +169,13 @@ export type ItemPedidoLinha = {
   opcoes: Json
   observacao: string | null
   total: number
+  estacao_id: string | null
+  preparo: EstadoPreparo | null
+  preparo_iniciado_em: string | null
+  pronto_em: string | null
+  entregue_em: string | null
+  cancelado_motivo: string | null
+  criado_em: string
 }
 
 export type MembroLinha = {
@@ -429,6 +439,41 @@ export type PagamentoPedidoLinha = {
   criado_em: string
 }
 
+export type EstacaoLinha = {
+  id: string
+  tenant_id: string
+  nome: string
+  ordem: number
+  alerta_min: number
+  ativa: boolean
+}
+
+export type EstacaoCategoriaLinha = { tenant_id: string; categoria_id: string; estacao_id: string }
+
+export type MesaLinha = {
+  id: string
+  tenant_id: string
+  loja_id: string
+  numero: number
+  area: string | null
+  lugares: number
+  ativa: boolean
+}
+
+export type ComandaLinha = {
+  id: string
+  tenant_id: string
+  loja_id: string
+  mesa_id: string | null
+  pedido_id: string
+  identificador: string | null
+  pessoas: number
+  garcom_nome: string | null
+  estado: EstadoComanda
+  aberta_em: string
+  fechada_em: string | null
+}
+
 export type TenantModuloLinha = {
   tenant_id: string
   modulo: string
@@ -583,6 +628,7 @@ export type Database = {
         | 'observacoes'
         | 'taxa_entrega'
         | 'troco_para'
+        | 'taxa_servico'
         | 'status'
         | 'desconto'
         | 'cancelado_motivo'
@@ -609,7 +655,18 @@ export type Database = {
       >
       itens_pedido: Tabela<
         ItemPedidoLinha,
-        'id' | 'produto_id' | 'opcoes' | 'observacao' | 'desconto',
+        | 'id'
+        | 'produto_id'
+        | 'opcoes'
+        | 'observacao'
+        | 'desconto'
+        | 'estacao_id'
+        | 'preparo'
+        | 'preparo_iniciado_em'
+        | 'pronto_em'
+        | 'entregue_em'
+        | 'cancelado_motivo'
+        | 'criado_em',
         [
           {
             foreignKeyName: 'itens_pedido_tenant_id_fkey'
@@ -960,6 +1017,72 @@ export type Database = {
           },
         ]
       >
+      estacoes: Tabela<
+        EstacaoLinha,
+        'id' | 'ordem' | 'alerta_min' | 'ativa',
+        [
+          {
+            foreignKeyName: 'estacoes_tenant_id_fkey'
+            columns: ['tenant_id']
+            isOneToOne: false
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
+          },
+        ]
+      >
+      estacao_categorias: Tabela<
+        EstacaoCategoriaLinha,
+        never,
+        [
+          {
+            foreignKeyName: 'estacao_categorias_estacao_id_tenant_id_fkey'
+            columns: ['estacao_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'estacoes'
+            referencedColumns: ['id', 'tenant_id']
+          },
+          {
+            foreignKeyName: 'estacao_categorias_categoria_id_tenant_id_fkey'
+            columns: ['categoria_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'categorias'
+            referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
+      mesas: Tabela<
+        MesaLinha,
+        'id' | 'area' | 'lugares' | 'ativa',
+        [
+          {
+            foreignKeyName: 'mesas_loja_id_tenant_id_fkey'
+            columns: ['loja_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'lojas'
+            referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
+      comandas: Tabela<
+        ComandaLinha,
+        'id' | 'mesa_id' | 'identificador' | 'pessoas' | 'garcom_nome' | 'estado' | 'aberta_em' | 'fechada_em',
+        [
+          {
+            foreignKeyName: 'comandas_mesa_id_tenant_id_fkey'
+            columns: ['mesa_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'mesas'
+            referencedColumns: ['id', 'tenant_id']
+          },
+          {
+            foreignKeyName: 'comandas_pedido_id_tenant_id_fkey'
+            columns: ['pedido_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'pedidos'
+            referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
       tenant_modulos: Tabela<
         TenantModuloLinha,
         'ativo' | 'configuracao' | 'ativado_em' | 'criado_em' | 'atualizado_em',
@@ -981,6 +1104,13 @@ export type Database = {
       anonimizar_pessoa: { Args: { p_tenant: string; p_pessoa: string }; Returns: undefined }
       financeiro_padrao: { Args: { p_tenant: string }; Returns: undefined }
       registar_venda_balcao: { Args: { p: Json }; Returns: PedidoLinha }
+      abrir_comanda: {
+        Args: { p_tenant: string; p_loja: string; p_mesa: string | null; p_identificador: string | null; p_pessoas: number; p_garcom: string }
+        Returns: ComandaLinha
+      }
+      fechar_comanda: { Args: { p: Json }; Returns: PedidoLinha }
+      juntar_comandas: { Args: { p_tenant: string; p_destino: string; p_origem: string }; Returns: undefined }
+      cozinha_padrao: { Args: { p_tenant: string }; Returns: undefined }
       cancelar_venda_balcao: {
         Args: { p_tenant: string; p_pedido: string; p_motivo: string; p_autor: string }
         Returns: undefined
@@ -1002,6 +1132,8 @@ export type Database = {
       forma_recebimento: FormaRecebimento
       estado_caixa: EstadoCaixa
       tipo_movimento_caixa: TipoMovimentoCaixa
+      estado_preparo: EstadoPreparo
+      estado_comanda: EstadoComanda
     }
     CompositeTypes: { [_ in never]: never }
   }

@@ -59,6 +59,9 @@ export async function definirModulo(
   if (ativo && modulo === 'financeiro') {
     garantir(await supabase.rpc('financeiro_padrao', { p_tenant: tenantId }), 'Não foi possível preparar o financeiro')
   }
+  if (ativo && modulo === 'cozinha') {
+    garantir(await supabase.rpc('cozinha_padrao', { p_tenant: tenantId }), 'Não foi possível preparar a cozinha')
+  }
 }
 
 /** Empresa nova: liga os módulos por defeito do catálogo. */

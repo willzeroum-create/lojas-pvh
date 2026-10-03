@@ -1,7 +1,9 @@
 'use client'
 
 import {
+  Armchair,
   BarChart3,
+  ChefHat,
   Landmark,
   ScanBarcode,
   ChevronRight,
@@ -28,6 +30,8 @@ const ICONES: Record<IconeModulo, LucideIcon> = {
   financeiro: Wallet,
   pdv: ScanBarcode,
   caixa: Landmark,
+  comandas: Armchair,
+  cozinha: ChefHat,
   loja: Store,
   resumo: BarChart3,
   conta: UserRound,

@@ -77,3 +77,29 @@ describe('caixa', () => {
     ])
   })
 })
+
+describe('conta da mesa', () => {
+  it('divide por pessoas sem perder centavos', async () => {
+    const { dividirConta } = await import('@/lib/dominio/pdv')
+    expect(dividirConta(100, 3)).toEqual([33.34, 33.33, 33.33])
+    expect(dividirConta(10, 1)).toEqual([10])
+    expect(() => dividirConta(10, 0)).toThrow()
+  })
+
+  it('taxa de serviço arredondada ao centavo e pagamentos contra o total', async () => {
+    const { taxaServico, distribuirPagamentos } = await import('@/lib/dominio/pdv')
+    expect(taxaServico(87.35, 10)).toBe(8.74)
+    const r = distribuirPagamentos(96.09, [
+      { forma: 'pix', valor: 50 },
+      { forma: 'dinheiro', valor: 50 },
+    ])
+    expect(r.ok && r.valor).toEqual({
+      pago: 100,
+      troco: 3.91,
+      pagamentos: [
+        { forma: 'pix', valor: 50, troco: 0 },
+        { forma: 'dinheiro', valor: 50, troco: 3.91 },
+      ],
+    })
+  })
+})
