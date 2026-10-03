@@ -32,7 +32,7 @@ export type GrupoModulo = keyof typeof GRUPOS_MODULO
 export type Maturidade = 'funcional' | 'pre_funcional' | 'planejado'
 
 /** Ícones dos separadores do painel; o componente de navegação traduz o nome. */
-export type IconeModulo = 'equipe' | 'estoque' | 'pdv' | 'caixa' | 'comandas' | 'cozinha' | 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
+export type IconeModulo = 'fiscal' | 'equipe' | 'estoque' | 'pdv' | 'caixa' | 'comandas' | 'cozinha' | 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
 
 export type ModuloModelo = {
   id: string
@@ -199,9 +199,10 @@ export const MODULOS = [
   {
     id: 'fiscal',
     nome: 'Nota fiscal',
-    descricao: 'NF-e, NFC-e e NFS-e por emissor parceiro homologado.',
+    descricao: 'NFC-e da venda em um toque, por emissor parceiro (Focus NFe), com DANFE e cancelamento.',
     grupo: 'fiscal',
-    maturidade: 'planejado',
+    maturidade: 'pre_funcional',
+    painel: { href: '/painel/fiscal', rotulo: 'Notas', icone: 'fiscal', ordem: 45 },
     ativacao: 'Certificado digital A1, inscrição estadual/municipal e CSC da NFC-e.',
   },
   {

@@ -50,3 +50,27 @@ describe('equipe', () => {
     ).rejects.toThrow(/permission denied/)
   })
 })
+
+describe('integrações', () => {
+  it('o dono lê o estado mas não altera; os segredos são inacessíveis', async () => {
+    await bd.db.query(`insert into public.integracoes (tenant_id, dominio, provedor) values ($1, 'fiscal', 'focus')`, [tenantA])
+    await bd.db.query(`insert into public.integracoes_segredos (tenant_id, dominio, nome, valor_cifrado) values ($1, 'fiscal', 'token_homologacao', 'v1:a:b:c')`, [tenantA])
+    const [i] = await bd.consultar<{ estado: string }>({ tipo: 'utilizador', id: donoA }, 'select estado from public.integracoes')
+    expect(i!.estado).toBe('aguardando_credenciais')
+    await bd.consultar({ tipo: 'utilizador', id: donoA }, `update public.integracoes set estado = 'em_producao' where tenant_id = $1`, [tenantA])
+    const [depois] = await bd.consultar<{ estado: string }>({ tipo: 'servidor' }, 'select estado from public.integracoes where tenant_id = $1', [tenantA])
+    expect(depois!.estado).toBe('aguardando_credenciais')
+    await expect(bd.consultar({ tipo: 'utilizador', id: donoA }, 'select * from public.integracoes_segredos')).rejects.toThrow(/permission denied/)
+    expect(await bd.consultar({ tipo: 'utilizador', id: donoB }, 'select * from public.integracoes')).toHaveLength(0)
+  })
+
+  it('uma só nota por venda e a ref não se repete', async () => {
+    await bd.db.query(
+      `insert into public.documentos_fiscais (tenant_id, tipo, ref, provedor, ambiente) values ($1, 'nfce', 'pedido-x', 'focus', 'homologacao')`,
+      [tenantA],
+    )
+    await expect(
+      bd.db.query(`insert into public.documentos_fiscais (tenant_id, tipo, ref, provedor, ambiente) values ($1, 'nfce', 'pedido-x', 'focus', 'homologacao')`, [tenantA]),
+    ).rejects.toThrow(/duplicate key/)
+  })
+})

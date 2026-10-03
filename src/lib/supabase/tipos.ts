@@ -36,6 +36,10 @@ export type CanalPedido = 'cardapio' | 'whatsapp' | 'balcao' | 'ifood' | '99food
 export type UnidadeEstoque = 'un' | 'kg' | 'g' | 'l' | 'ml' | 'cx' | 'pct' | 'dz'
 export type TipoMovimentoEstoque = 'entrada' | 'saida' | 'venda' | 'ajuste' | 'estorno' | 'producao'
 export type EstadoEntrada = 'pendente' | 'concluida' | 'cancelada'
+export type EstadoIntegracao = 'aguardando_credenciais' | 'em_homologacao' | 'em_producao' | 'com_erro' | 'suspensa'
+export type AmbienteIntegracao = 'homologacao' | 'producao'
+export type TipoDocumentoFiscal = 'nfce' | 'nfe' | 'nfse'
+export type EstadoDocumentoFiscal = 'enfileirado' | 'processando' | 'autorizado' | 'rejeitado' | 'denegado' | 'cancelado' | 'contingencia' | 'erro'
 export type PapelEquipe = 'gerente' | 'caixa' | 'garcom' | 'cozinha' | 'atendente'
 export type EstadoPreparo = 'aguardando' | 'em_preparo' | 'pronto' | 'entregue' | 'cancelado'
 export type EstadoComanda = 'aberta' | 'conta' | 'fechada' | 'cancelada'
@@ -110,6 +114,11 @@ export type ProdutoLinha = {
   estoque_atual: number
   estoque_minimo: number
   custo_medio: number
+  ncm: string | null
+  cfop: string
+  csosn: string
+  origem_mercadoria: number
+  cest: string | null
   disponivel: boolean
   tempo_preparo_min: number | null
   ordem: number
@@ -582,6 +591,54 @@ export type AuditoriaLinha = {
   criado_em: string
 }
 
+export type IntegracaoLinha = {
+  tenant_id: string
+  dominio: 'fiscal' | 'pix' | 'whatsapp' | 'delivery'
+  provedor: string
+  ambiente: AmbienteIntegracao
+  estado: EstadoIntegracao
+  configuracao: Json
+  ultimo_erro: string | null
+  verificado_em: string | null
+  atualizado_em: string
+}
+
+export type IntegracaoSegredoLinha = { tenant_id: string; dominio: string; nome: string; valor_cifrado: string; atualizado_em: string }
+
+export type WebhookRecebidoLinha = {
+  id: string
+  provedor: string
+  evento_id: string
+  tenant_id: string | null
+  payload: Json
+  assinatura_ok: boolean
+  recebido_em: string
+  processado_em: string | null
+  erro: string | null
+}
+
+export type DocumentoFiscalLinha = {
+  id: string
+  tenant_id: string
+  pedido_id: string | null
+  tipo: TipoDocumentoFiscal
+  ref: string
+  provedor: string
+  ambiente: AmbienteIntegracao
+  estado: EstadoDocumentoFiscal
+  numero: string | null
+  serie: string | null
+  chave: string | null
+  protocolo: string | null
+  url_danfe: string | null
+  url_xml: string | null
+  mensagem: string | null
+  cpf_cnpj_destinatario: string | null
+  valor_total: number
+  criado_em: string
+  atualizado_em: string
+}
+
 export type TenantModuloLinha = {
   tenant_id: string
   modulo: string
@@ -667,6 +724,11 @@ export type Database = {
         | 'estoque_atual'
         | 'estoque_minimo'
         | 'custo_medio'
+        | 'ncm'
+        | 'cfop'
+        | 'csosn'
+        | 'origem_mercadoria'
+        | 'cest'
         | 'disponivel'
         | 'tempo_preparo_min'
         | 'ordem'
@@ -756,6 +818,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: 'tenants'
             referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'pedidos_cliente_tenant_fkey'
+            columns: ['cliente_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'pessoas'
+            referencedColumns: ['id', 'tenant_id']
           },
           {
             foreignKeyName: 'pedidos_loja_id_tenant_id_fkey'
@@ -1275,6 +1344,35 @@ export type Database = {
       inventarios: Tabela<InventarioLinha, 'id' | 'descricao' | 'autor_nome' | 'itens' | 'ajustes' | 'criado_em'>
       equipe_membros: Tabela<EquipeMembroLinha, 'id' | 'ativo' | 'tentativas_falhas' | 'bloqueado_ate' | 'criado_em'>
       auditoria: Tabela<AuditoriaLinha, 'id' | 'papel' | 'aprovado_por' | 'alvo_id' | 'detalhe' | 'criado_em'>
+      integracoes: Tabela<IntegracaoLinha, 'ambiente' | 'estado' | 'configuracao' | 'ultimo_erro' | 'verificado_em' | 'atualizado_em'>
+      integracoes_segredos: Tabela<IntegracaoSegredoLinha, 'atualizado_em'>
+      webhooks_recebidos: Tabela<WebhookRecebidoLinha, 'id' | 'tenant_id' | 'assinatura_ok' | 'recebido_em' | 'processado_em' | 'erro'>
+      documentos_fiscais: Tabela<
+        DocumentoFiscalLinha,
+        | 'id'
+        | 'pedido_id'
+        | 'estado'
+        | 'numero'
+        | 'serie'
+        | 'chave'
+        | 'protocolo'
+        | 'url_danfe'
+        | 'url_xml'
+        | 'mensagem'
+        | 'cpf_cnpj_destinatario'
+        | 'valor_total'
+        | 'criado_em'
+        | 'atualizado_em',
+        [
+          {
+            foreignKeyName: 'documentos_fiscais_pedido_id_tenant_id_fkey'
+            columns: ['pedido_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'pedidos'
+            referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
       tenant_modulos: Tabela<
         TenantModuloLinha,
         'ativo' | 'configuracao' | 'ativado_em' | 'criado_em' | 'atualizado_em',
@@ -1332,6 +1430,10 @@ export type Database = {
       tipo_movimento_estoque: TipoMovimentoEstoque
       estado_entrada: EstadoEntrada
       papel_equipe: PapelEquipe
+      estado_integracao: EstadoIntegracao
+      ambiente_integracao: AmbienteIntegracao
+      tipo_documento_fiscal: TipoDocumentoFiscal
+      estado_documento_fiscal: EstadoDocumentoFiscal
     }
     CompositeTypes: { [_ in never]: never }
   }
