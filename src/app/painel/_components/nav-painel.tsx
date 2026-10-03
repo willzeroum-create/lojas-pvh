@@ -40,6 +40,7 @@ const ICONES: Record<IconeModulo, LucideIcon> = {
   fiscal: FileText,
   pix: QrCode,
   ponto: Clock,
+  relatorios: BarChart3,
   comandas: Armchair,
   cozinha: ChefHat,
   loja: Store,
