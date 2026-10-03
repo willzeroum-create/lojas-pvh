@@ -4,11 +4,13 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { exigirModulo } from '@/lib/auth/guardas'
 import { obterFichaPessoa } from '@/lib/dados/clientes'
+import { extratoCashback } from '@/lib/dados/fidelidade'
 import { formatarDocumento } from '@/lib/dominio/documento'
 import { formatarBRL } from '@/lib/dominio/moeda'
 import { formatarTelefone, normalizarWhatsapp } from '@/lib/dominio/telefone'
 import type { CanalPedido, ConsentimentoLinha, PedidoStatus } from '@/lib/supabase/tipos'
 import { AnonimizarPessoa } from '../_components/anonimizar-pessoa'
+import { CartaoCashback } from '../_components/cartao-cashback'
 
 export const metadata: Metadata = { title: 'Ficha do cadastro' }
 
@@ -59,10 +61,11 @@ const dataPedido = new Intl.DateTimeFormat('pt-BR', {
 const numero = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 })
 
 export default async function PaginaFichaPessoa({ params }: { params: Promise<{ id: string }> }) {
-  const { supabase, tenantId } = await exigirModulo('clientes')
+  const { supabase, tenantId, modulos } = await exigirModulo('clientes')
   const { id } = await params
   const ficha = await obterFichaPessoa(supabase, tenantId, id)
   if (!ficha) notFound()
+  const cashback = modulos.has('fidelidade') ? await extratoCashback(supabase, tenantId, id) : null
 
   const { pessoa, compras, ultimosPedidos, enderecos, consentimentos } = ficha
   const whatsapp = pessoa.whatsapp ? normalizarWhatsapp(pessoa.whatsapp) : null
@@ -349,6 +352,7 @@ export default async function PaginaFichaPessoa({ params }: { params: Promise<{ 
         </div>
 
         <div className="min-w-0 space-y-6">
+          {cashback && <CartaoCashback extrato={cashback} />}
           <section aria-labelledby="contato-titulo" className="rounded-xl border border-areia bg-branco p-5">
             <h2 id="contato-titulo" className="font-sans text-lg font-bold">
               Dados de contato

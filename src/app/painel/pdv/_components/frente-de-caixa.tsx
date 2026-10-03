@@ -4,7 +4,8 @@ import { Check, Minus, Plus, Printer, QrCode, Search, ShoppingBasket, Trash2 } f
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, useTransition } from 'react'
-import { venderAction } from '@/app/painel/caixa/actions'
+import { venderAction, type ClientePdv } from '@/app/painel/caixa/actions'
+import { cashbackParaVendaAction } from '@/app/painel/fidelidade/actions'
 import { gerarPixAction } from '@/app/painel/pix/actions'
 import { QrPix } from '@/app/painel/pix/_components/qr-pix'
 import { useAprovacaoGerente } from '@/components/ui/aprovacao-gerente'
@@ -22,6 +23,7 @@ import {
 import { ComprovanteVenda } from './comprovante-venda'
 import { DialogoPdv } from './dialogo-pdv'
 import { UltimasVendas } from './ultimas-vendas'
+import { BuscaCliente } from './busca-cliente'
 
 type Linha = { produto: ProdutoPdv; quantidade: string; desconto: string }
 type Recebimento = { chave: number; forma: FormaRecebimento; valor: string }
@@ -30,6 +32,7 @@ type Recibo = {
   itens: (ItemCalculado & { vendidoPorPeso: boolean })[]
   pagamentos: PagamentoVenda[]
   descontoGeral: number
+  cashback: number
   clienteNome: string
   criadoEm: string
 }
@@ -56,12 +59,14 @@ export function FrenteDeCaixa({
   lojaNome,
   operador,
   pixAtivo = false,
+  fidelidadeAtiva = false,
 }: {
   produtos: ProdutoPdv[]
   vendas: VendaDoCaixa[]
   lojaNome: string
   operador: string
   pixAtivo?: boolean
+  fidelidadeAtiva?: boolean
 }) {
   const router = useRouter()
   const { solicitar, dialogo } = useAprovacaoGerente()
@@ -84,6 +89,13 @@ export function FrenteDeCaixa({
   const [erro, definirErro] = useState('')
   const [aviso, definirAviso] = useState('')
   const [cliente, definirCliente] = useState('')
+  const [clienteEscolhido, definirClienteEscolhido] = useState<ClientePdv | null>(null)
+  const [usarCashback, definirUsarCashback] = useState(false)
+  const [revisaoCashback, definirRevisaoCashback] = useState(0)
+  const [consultaCashback, definirConsultaCashback] = useState<{
+    chave: string
+    resposta: Awaited<ReturnType<typeof cashbackParaVendaAction>>
+  } | null>(null)
   const [observacoes, definirObservacoes] = useState('')
   const [recibo, definirRecibo] = useState<Recibo | null>(null)
   const [incerto, definirIncerto] = useState(false)
@@ -123,9 +135,19 @@ export function FrenteDeCaixa({
     total === null
       ? null
       : calcularVenda(itens, descontoGeral, [{ forma: 'dinheiro', valor: Math.max(0.01, total) }])
+  const clienteId = clienteEscolhido?.id
+  const chaveCashback =
+    fidelidadeAtiva && clienteId && total !== null && !recibo
+      ? `${clienteId}:${total}:${revisaoCashback}`
+      : null
+  const respostaCashback = consultaCashback?.chave === chaveCashback ? consultaCashback?.resposta : null
+  const consultandoCashback = chaveCashback !== null && !respostaCashback
+  const saldoCashback = respostaCashback?.ok ? respostaCashback : null
+  const cashback = usarCashback && saldoCashback?.ativo ? saldoCashback.maximo : 0
+  const totalAPagar = total === null ? null : Math.max(0, Math.round((total - cashback) * 100) / 100)
   const pagamentos = recebimentos.map(({ forma, valor }) => ({ forma, valor: numero(valor) }))
   const pagamentoInvalido = pagamentos.some(({ valor }) => !Number.isFinite(valor) || valor <= 0)
-  const calculo = calcularVenda(itens, descontoGeral, pagamentos)
+  const calculo = calcularVenda(itens, descontoGeral + cashback, pagamentos)
   const valorPix =
     pagamentos
       .filter((pagamento) => pagamento.forma === 'pix')
@@ -135,6 +157,8 @@ export function FrenteDeCaixa({
   const pagamentoTravado = gerandoPix || pixEmCurso
   const podeConfirmar =
     !incerto &&
+    !consultandoCashback &&
+    !(cashback > 0 && totalAPagar === 0) &&
     total !== null &&
     !entradaInvalida &&
     !pagamentoInvalido &&
@@ -301,6 +325,9 @@ export function FrenteDeCaixa({
     definirDesconto('')
     definirRecebimentos([])
     definirCliente('')
+    definirClienteEscolhido(null)
+    definirUsarCashback(false)
+    definirConsultaCashback(null)
     definirObservacoes('')
     definirErro('')
     definirBusca('')
@@ -309,10 +336,11 @@ export function FrenteDeCaixa({
     requestAnimationFrame(focarBusca)
   }
   function adicionarForma(forma: FormaRecebimento) {
+    if (consultandoCashback || (cashback > 0 && totalAPagar === 0)) return
     if (pixRecebido && forma === 'pix') return
     if (recebimentos.length >= 6) return
     const falta = !recebimentos.length
-      ? (total ?? 0)
+      ? (totalAPagar ?? 0)
       : !calculo.ok && calculo.falta !== undefined
         ? calculo.falta
         : 0
@@ -371,6 +399,8 @@ export function FrenteDeCaixa({
       descontoGeral,
       pagamentos: pagamentos.map((pagamento) => ({ ...pagamento })),
       clienteNome: cliente.trim() || undefined,
+      clienteId,
+      cashback: cashback || undefined,
       observacoes: observacoes.trim() || undefined,
     }
     const itensRecibo = resumo.itens.map((item, indice) => ({
@@ -399,6 +429,7 @@ export function FrenteDeCaixa({
           itens: itensRecibo,
           pagamentos: entrada.pagamentos,
           descontoGeral: entrada.descontoGeral,
+          cashback: entrada.cashback ?? 0,
           clienteNome: entrada.clienteNome ?? '',
           criadoEm: new Date().toISOString(),
         })
@@ -423,6 +454,30 @@ export function FrenteDeCaixa({
       }
     })
   }
+
+  useEffect(() => {
+    if (!chaveCashback || !clienteId || total === null) return
+    let ignorar = false
+    const espera = window.setTimeout(async () => {
+      try {
+        const resposta = await cashbackParaVendaAction(clienteId, total)
+        if (!ignorar) definirConsultaCashback({ chave: chaveCashback, resposta })
+      } catch {
+        if (!ignorar)
+          definirConsultaCashback({
+            chave: chaveCashback,
+            resposta: {
+              ok: false,
+              erro: 'Não foi possível consultar o cashback. Tente novamente ou prossiga sem usar saldo.',
+            },
+          })
+      }
+    }, 300)
+    return () => {
+      ignorar = true
+      window.clearTimeout(espera)
+    }
+  }, [chaveCashback, clienteId, total])
 
   useEffect(() => {
     buscaRef.current?.focus()
@@ -1006,9 +1061,103 @@ export function FrenteDeCaixa({
               <div className="flex flex-wrap items-end justify-between gap-3 border-b border-areia pb-4">
                 <p className="text-sm font-bold">Total a receber</p>
                 <p className="text-4xl font-extrabold tabular-nums" aria-live="polite">
-                  {formatarBRL(total ?? 0)}
+                  {formatarBRL(totalAPagar ?? 0)}
                 </p>
               </div>
+              <BuscaCliente
+                nome={cliente}
+                cliente={clienteEscolhido}
+                bloqueado={pagamentoTravado || pixRecebido}
+                alterar={(nome, pessoa) => {
+                  definirCliente(nome)
+                  definirClienteEscolhido(pessoa)
+                  definirUsarCashback(false)
+                  definirConsultaCashback(null)
+                  limparPagamentos()
+                }}
+              />
+              {fidelidadeAtiva && clienteEscolhido && (
+                <section
+                  aria-label="Cashback do cliente"
+                  className="space-y-3 rounded-xl border border-areia bg-papel-2 p-4"
+                >
+                  <div aria-live="polite" aria-atomic="true">
+                    {consultandoCashback ? (
+                      <p role="status">Consultando cashback…</p>
+                    ) : respostaCashback && !respostaCashback.ok ? (
+                      <p role="alert" className="text-vermelho">
+                        {respostaCashback.erro} Nenhum cashback aplicado.
+                      </p>
+                    ) : saldoCashback?.ativo ? (
+                      <>
+                        <p className="font-bold">Saldo de cashback</p>
+                        <p className="mt-1 text-3xl font-extrabold tabular-nums">
+                          {formatarBRL(saldoCashback.saldo)}
+                        </p>
+                        {saldoCashback.saldo < saldoCashback.minimo ? (
+                          <p className="mt-2 text-sm text-carvao">
+                            Faltam {formatarBRL(saldoCashback.minimo - saldoCashback.saldo)} para usar.
+                          </p>
+                        ) : saldoCashback.maximo <= 0 ? (
+                          <p className="mt-2 text-sm text-carvao">Sem saldo disponível para esta compra.</p>
+                        ) : (
+                          <p className="mt-2 text-sm text-carvao">
+                            Até {saldoCashback.limitePct}% da compra.{' '}
+                            {cashback > 0
+                              ? `${formatarBRL(cashback)} aplicado ao total.`
+                              : 'Escolha se deseja usar nesta venda.'}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-sm text-carvao">Programa de cashback inativo.</p>
+                    )}
+                  </div>
+                  {saldoCashback?.ativo && saldoCashback.maximo > 0 && (
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={usarCashback}
+                      disabled={pagamentoTravado || pixRecebido}
+                      className={`pdv-botao w-full justify-between ${usarCashback ? 'bg-tinta text-papel' : 'bg-branco'}`}
+                      onClick={() => {
+                        definirUsarCashback(!usarCashback)
+                        limparPagamentos()
+                      }}
+                    >
+                      <span>Usar {formatarBRL(saldoCashback.maximo)}</span>
+                      <span aria-hidden className="font-bold">
+                        {usarCashback ? 'Sim' : 'Não'}
+                      </span>
+                    </button>
+                  )}
+                  {respostaCashback && !respostaCashback.ok && (
+                    <button
+                      type="button"
+                      className="pdv-botao w-full"
+                      disabled={pagamentoTravado || pixRecebido}
+                      onClick={() => {
+                        limparPagamentos()
+                        definirRevisaoCashback((atual) => atual + 1)
+                      }}
+                    >
+                      Consultar novamente
+                    </button>
+                  )}
+                  {cashback > 0 && totalAPagar === 0 && (
+                    <p role="alert" className="text-sm text-vermelho">
+                      O resgate integral ainda não está disponível. Desative o cashback para concluir esta
+                      venda.
+                    </p>
+                  )}
+                  {cashback > 0 && (
+                    <p className="text-sm text-carvao">
+                      Compra {formatarBRL(total ?? 0)} − cashback {formatarBRL(cashback)} ={' '}
+                      <strong>{formatarBRL(totalAPagar ?? 0)} a pagar</strong>.
+                    </p>
+                  )}
+                </section>
+              )}
               <div>
                 <p className="mb-2 text-sm font-bold">Escolha uma ou mais formas</p>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -1018,7 +1167,11 @@ export function FrenteDeCaixa({
                       data-foco-inicial={indice === 0 ? true : undefined}
                       type="button"
                       disabled={
-                        recebimentos.length >= 6 || pagamentoTravado || (pixRecebido && forma === 'pix')
+                        recebimentos.length >= 6 ||
+                        pagamentoTravado ||
+                        consultandoCashback ||
+                        (cashback > 0 && totalAPagar === 0) ||
+                        (pixRecebido && forma === 'pix')
                       }
                       onClick={() => adicionarForma(forma)}
                       className="pdv-botao justify-start text-left"
@@ -1090,7 +1243,9 @@ export function FrenteDeCaixa({
                 {!recebimentos.length ? (
                   <>
                     <p className="text-sm font-bold">Falta receber</p>
-                    <p className="pdv-numero mt-1 font-extrabold tabular-nums">{formatarBRL(total ?? 0)}</p>
+                    <p className="pdv-numero mt-1 font-extrabold tabular-nums">
+                      {formatarBRL(totalAPagar ?? 0)}
+                    </p>
                   </>
                 ) : pagamentoInvalido ? (
                   <p className="font-bold">Informe um valor válido em cada recebimento.</p>
@@ -1121,21 +1276,9 @@ export function FrenteDeCaixa({
               </div>
               <details className="rounded-xl border border-areia px-3">
                 <summary className="min-h-12 cursor-pointer py-3 text-sm font-bold">
-                  Identificar cliente / observação (opcional)
+                  Observação da venda (opcional)
                 </summary>
                 <div className="space-y-3 pb-3">
-                  <label htmlFor="cliente-pdv" className="block text-sm font-bold">
-                    Nome do cliente
-                    <input
-                      id="cliente-pdv"
-                      disabled={pagamentoTravado}
-                      value={cliente}
-                      onChange={(evento) => definirCliente(evento.target.value)}
-                      maxLength={120}
-                      className="pdv-campo mt-1"
-                      autoComplete="off"
-                    />
-                  </label>
                   <label htmlFor="observacoes-pdv" className="block text-sm font-bold">
                     Observação da venda
                     <textarea

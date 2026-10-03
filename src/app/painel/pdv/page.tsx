@@ -45,6 +45,7 @@ export default async function PaginaPdv() {
       lojaNome={loja.nome}
       operador={sessao.operador?.nome ?? sessao.email ?? 'Operador'}
       pixAtivo={modulos.has('bancos')}
+      fidelidadeAtiva={modulos.has('fidelidade')}
     />
   )
 }

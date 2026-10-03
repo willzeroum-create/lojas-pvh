@@ -541,3 +541,39 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Módulos de balcão: foco consistente e movimento opcional. */
+:is(.ponto-area, .fidelidade-area, .relatorios-area) { min-width: 0; overflow-wrap: anywhere; }
+:is(.ponto-area, .fidelidade-area, .relatorios-area) :is(h1, h2, h3) { font-family: var(--font-sans); }
+:is(.ponto-area, .fidelidade-area, .relatorios-area) :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--color-tangerina-escura);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.ponto-area, .fidelidade-area, .relatorios-area) *,
+  :is(.ponto-area, .fidelidade-area, .relatorios-area) *::before,
+  :is(.ponto-area, .fidelidade-area, .relatorios-area) *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* O espelho impresso contém a empresa, o mês, os registros e as assinaturas. */
+@media print {
+  body:has(#espelho-ponto) { background: white; }
+  body:has(#espelho-ponto)::before { display: none; }
+  body:has(#espelho-ponto) *:not(:has(#espelho-ponto)):not(#espelho-ponto):not(#espelho-ponto *) { display: none !important; }
+  body:has(#espelho-ponto) *:has(#espelho-ponto) { display: block !important; position: static !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; border: 0 !important; overflow: visible !important; }
+  #espelho-ponto { background: white; color: black; font-size: 9pt; }
+  #espelho-ponto h1 { font-size: 20pt; }
+  #espelho-ponto .ponto-totais { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8pt; }
+  #espelho-ponto .ponto-totais > div { padding: 8pt; color: black; background: white; border: 1px solid #aaa; }
+  #espelho-ponto .ponto-totais p { color: black; font-size: 9pt; }
+  #espelho-ponto .ponto-totais p:nth-child(2) { font-size: 18pt; }
+  #espelho-ponto .ponto-tabela { font-size: 8pt; }
+  #espelho-ponto .ponto-tabela th, #espelho-ponto .ponto-tabela td { padding: 5pt 3pt; }
+  #espelho-ponto .ponto-tabela td * { font-size: 8pt; }
+  #espelho-ponto .ponto-tabela thead { display: table-header-group; }
+  #espelho-ponto .ponto-tabela tr, #espelho-ponto .ponto-assinaturas { break-inside: avoid; }
+}

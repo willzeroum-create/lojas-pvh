@@ -25,6 +25,7 @@ export function ComprovanteVenda({
   itens,
   pagamentos,
   descontoGeral,
+  cashback = 0,
   lojaNome,
   operador,
   clienteNome,
@@ -34,6 +35,7 @@ export function ComprovanteVenda({
   itens: ItemComUnidade[]
   pagamentos: PagamentoVenda[]
   descontoGeral: number
+  cashback?: number
   lojaNome: string
   operador: string
   clienteNome?: string
@@ -44,7 +46,9 @@ export function ComprovanteVenda({
   const descontosItens = itens.reduce((soma, item) => soma + Math.round(item.desconto * 100), 0) / 100
   const recebido = pagamentos.reduce((soma, pagamento) => soma + Math.round(pagamento.valor * 100), 0) / 100
   const totalDosItens = itens.reduce((soma, item) => soma + Math.round(item.total * 100), 0)
-  const precoAtualizado = totalDosItens - Math.round(descontoGeral * 100) !== Math.round(venda.total * 100)
+  const precoAtualizado =
+    totalDosItens - Math.round(descontoGeral * 100) - Math.round(cashback * 100) !==
+    Math.round(venda.total * 100)
 
   return (
     <article
@@ -117,6 +121,12 @@ export function ComprovanteVenda({
           <div className="flex flex-wrap justify-between gap-2 text-carvao">
             <dt>Desconto geral</dt>
             <dd>− {formatarBRL(descontoGeral)}</dd>
+          </div>
+        )}
+        {cashback > 0 && (
+          <div className="flex flex-wrap justify-between gap-2 text-carvao">
+            <dt>Cashback utilizado</dt>
+            <dd>− {formatarBRL(cashback)}</dd>
           </div>
         )}
         <div className="flex flex-wrap justify-between gap-2 pt-2 text-xl font-bold">

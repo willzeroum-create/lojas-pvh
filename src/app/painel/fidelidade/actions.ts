@@ -21,7 +21,8 @@ const esquemaConfig = z.object({
   percentual: z.coerce.number().gt(0, 'Maior que zero').max(50, 'No máximo 50 %'),
   validadeDias: z.coerce.number().int().min(7, 'Mínimo de 7 dias').max(730, 'No máximo 2 anos'),
   resgateMinimo: dinheiro,
-  limiteResgatePct: z.coerce.number().gt(0, 'Maior que zero').max(100, 'No máximo 100 %'),
+  // Até 90 %: a venda precisa de pelo menos um pagamento (dinheiro, Pix ou cartão).
+  limiteResgatePct: z.coerce.number().gt(0, 'Maior que zero').max(90, 'No máximo 90 % da compra'),
 })
 
 export async function salvarConfigCashbackAction(entrada: unknown): Promise<Resultado> {
