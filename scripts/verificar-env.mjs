@@ -13,6 +13,12 @@ const ESPERADAS = [
   ['SUPABASE_DB_URL', 'só para pnpm migrar'],
   ['ANTHROPIC_API_KEY', 'só para o importador por foto'],
   ['NEXT_PUBLIC_URL_BASE', 'links absolutos'],
+  ['NEXT_PUBLIC_WHATSAPP_COMERCIAL', 'botões da landing (sem ele levam ao contacto)'],
+  ['PVH_SEGREDO_EQUIPE', 'opcional: assina o PIN da equipe (senão deriva da chave secreta)'],
+  ['CRON_SECRET', 'resumo diário automático (Vercel Cron)'],
+  ['WHATSAPP_TOKEN', 'resumo automático: API oficial do WhatsApp'],
+  ['WHATSAPP_PHONE_NUMBER_ID', 'resumo automático: número que envia'],
+  ['WHATSAPP_TEMPLATE_RESUMO', 'resumo automático: modelo aprovado'],
 ]
 
 if (!existsSync('.env.local')) {
