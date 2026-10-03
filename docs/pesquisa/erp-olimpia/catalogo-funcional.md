@@ -12,7 +12,7 @@
 >   e a skill `dominio-produto`).
 > - **Data:** 2026-10-03.
 > - Nenhum texto da Olímpia foi copiado. Onde citamos o que eles fazem, é um
->   resumo nosso, com o arquivo de origem entre parênteses, por exemplo (96).
+>   resumo nosso, com o arquivo de origem entre parênteses, por exemplo (08).
 
 ## Como usar este catálogo
 
@@ -54,7 +54,7 @@ modular, mais as lições da Olímpia.
 
 1. **Um catálogo, muitos canais.** O produto é cadastrado uma vez e publicado em
    todos os canais por adaptadores (formato canônico Open Delivery). A Olímpia
-   faz o mesmo e acerta nisso (93).
+   faz o mesmo e acerta nisso (07).
 2. **Multi-tenant sempre.** Toda leitura passa por `src/lib/dados/*` com
    `tenantId` explícito; a RLS é a rede de segurança.
 3. **O campo `canal` existe em todo pedido**, desde o primeiro dia.
@@ -65,16 +65,16 @@ modular, mais as lições da Olímpia.
 5. **Só aparece o que o cliente usa.** O menu, os relatórios, a ajuda, as
    configurações e os avisos saem dos módulos ligados. A Olímpia mostra os 27
    módulos a todos, com cerca de 420 parâmetros de segmentos alheios, e leva a
-   uma página de bloqueio quando o módulo não está no plano (96, 915).
+   uma página de bloqueio quando o módulo não está no plano (08, 17).
 6. **Linguagem do comerciante.** Sem nomes internos, códigos da SEFAZ como
-   estado, maiúsculas forçadas ou JSON na tela (13, 916, 919).
+   estado, maiúsculas forçadas ou JSON na tela (13, 18, 19).
 7. **Estados com nome e regras.** Cada entidade tem um conjunto fechado de
    estados, com o mesmo rótulo e a mesma cor em todas as telas, e transições
    controladas. O estado financeiro é calculado dos pagamentos, nunca escolhido
-   à mão (14, 20, 921).
+   à mão (14, 20, 21).
 8. **Tempo real, não consulta periódica.** Avisos por Supabase Realtime, um
    canal só e apenas para os módulos ligados. A Olímpia consulta sete canais a
-   cada 10 a 30 segundos em todas as telas (915, 920).
+   cada 10 a 30 segundos em todas as telas (17, 19).
 9. **Segredos no cofre.** Certificado, senhas de API e tokens nunca aparecem em
    texto aberto nem vão no endereço. `tenant_modulos.configuracao` nunca guarda
    segredos (plano-fase-1, §11).
@@ -200,7 +200,7 @@ código.
 
 **Na Olímpia:** cadastro da empresa com consulta do CNPJ e escolha da inscrição
 estadual, logo e QR do Pix; Mensalidades (faturas, plano, termos de uso com
-aceite auditável); Novidades (96, 915, 916).
+aceite auditável); Novidades (08, 18).
 
 **Objetivo.** Guardar quem é a empresa, que plano e módulos tem, como paga a
 mensalidade e o que aceitou.
@@ -265,7 +265,7 @@ nossa). O comerciante fornece só os dados cadastrais.
 consulta do CNPJ com escolha da inscrição. Evitar o crédito de 30 dias com dois
 prazos na mesma tela, a troca de plano por uma confirmação nativa do navegador,
 bloquear toda a operação até pagar a implantação e mostrar módulos não
-contratados como página de bloqueio (915, 916).
+contratados como página de bloqueio (17, 18).
 
 ---
 
@@ -278,7 +278,7 @@ contratados como página de bloqueio (915, 916).
 **Na Olímpia:** usuários e grupos de permissão (as telas pelo grupo, as ações
 pelo usuário), cargos, senhas de sangria e de cancelamento guardadas nos
 parâmetros, fila de liberações de supervisor, log de alterações com antes e
-depois em JSON (96, 916, 918).
+depois em JSON (02, 08, 18).
 
 **Objetivo.** Dizer quem trabalha na loja, o que cada um pode fazer e guardar o
 registro do que foi feito.
@@ -332,7 +332,7 @@ registro do que foi feito.
 **Da Olímpia:** copiar a fila de liberações (o pedido remoto) e a auditoria por
 tabela. Evitar senhas operacionais nos parâmetros, permissões em duas camadas
 pouco claras, quatro logins diferentes para os apps (garçom, ponto, entregador,
-colaborador) e JSON cru no log (96, 916, 922).
+colaborador) e JSON cru no log (08, 18, 22).
 
 ---
 
@@ -345,7 +345,7 @@ colaborador) e JSON cru no log (96, 916, 922).
 **Na Olímpia:** cadastro geral de produtos usado por todos os canais, grupos
 com comissão e ordem, subgrupos com foto, fabricantes, cores, grades, NCM,
 cadastros de confecção, campos obrigatórios configuráveis, etiquetas, lista de
-preços, metas de markup por grupo (93, 915, 919, 920).
+preços, metas de markup por grupo (07, 18, 19, 21).
 
 **Objetivo.** Cadastrar cada produto uma vez e publicá-lo em todos os canais.
 
@@ -408,7 +408,7 @@ produtos e as fotos.
 o cadastro rápido dentro da busca e os campos obrigatórios com aviso fiscal.
 Evitar maiúsculas automáticas, listas com quatro controles de filtro,
 cadastros de confecção para todos e serviço tratado como "produto marcado como
-serviço" (14, 93, 915).
+serviço" (06, 07, 14, 18).
 
 ---
 
@@ -421,7 +421,7 @@ serviço" (14, 93, 915).
 **Na Olímpia:** cadastro único de pessoas com papéis (cliente, colaborador,
 fornecedor, transportador, produtor rural), Consulta Cliente (score de
 pagamento, crédito, total comprado, frequência, gráficos, linha do tempo),
-conta de crédito do cliente alimentada por trocas e devoluções (912, 918).
+conta de crédito do cliente alimentada por trocas e devoluções (08, 19).
 
 **Objetivo.** Ter um cadastro único de pessoas e a ficha completa de cada
 cliente.
@@ -475,7 +475,7 @@ cliente.
 
 **Da Olímpia:** copiar a Consulta Cliente (tudo numa tela) e o cadastro único
 com papéis. Evitar a lupa genérica de Pessoa que mistura papéis nos filtros e
-"Clientes" e "Consulta Cliente" como dois atalhos diferentes (918, 919). O
+"Clientes" e "Consulta Cliente" como dois atalhos diferentes (08, 19). O
 formulário de pessoas deles não foi visto por inteiro; não se sabe se pede
 consentimento.
 
@@ -490,7 +490,7 @@ consentimento.
 **Na Olímpia:** orçamento, venda e venda cancelada como o mesmo documento
 (estados 0, 1 e 2), "modalidade" da venda (retirada, entrega, loja), vendas
 online da loja com estado do pedido e do pagamento separados, avisos de pedido
-novo por consulta periódica e janela modal (93, 915, 916, 918).
+novo por consulta periódica e janela modal (06, 17, 19).
 
 **Objetivo.** Ver os pedidos de todos os canais num lugar só, em tempo real.
 
@@ -541,8 +541,8 @@ módulos (`marketplaces`, `mercado_livre`, `loja_virtual`).
 
 **Da Olímpia:** copiar o estado do pagamento separado e a "modalidade" no
 pedido. Evitar a consulta periódica de vários canais, as janelas modais em
-fila que interrompem o trabalho e um ciclo sem "em preparo" e "pronto" (93,
-915, 916).
+fila que interrompem o trabalho e um ciclo sem "em preparo" e "pronto" (06, 17,
+19).
 
 ---
 
@@ -555,7 +555,7 @@ fila que interrompem o trabalho e um ciclo sem "em preparo" e "pronto" (93,
 **Na Olímpia:** empresa e filiais com empresa ativa na sessão; configuração do
 frete por km (com mínimo e frete grátis) ou por bairro digitado à mão,
 repetida no delivery e na loja virtual; zonas, bairros com tarifa e rotas
-(93, 96).
+(05, 08).
 
 **Objetivo.** Dizer como e quando cada unidade atende.
 
@@ -598,7 +598,7 @@ repetida no delivery e na loja virtual; zonas, bairros com tarifa e rotas
 
 **Da Olímpia:** evitar o frete configurado em dois lugares, o bairro sem cidade
 e digitado à mão, o modo km sem raio máximo e uma base de municípios incompleta
-(93, 96).
+(05, 08).
 
 ---
 
@@ -612,7 +612,7 @@ e digitado à mão, o modo km sem raio máximo e uma base de municípios incompl
 parcela com origem em venda ou OS e só dois estados (aberta, paga); comissão
 gravada em cada parcela; plano de contas em árvore só de nomes, com apuração e
 lançamento de crédito ou débito; previsão financeira, aging, fluxo de caixa;
-contas a pagar criadas pela nota de entrada (20, 96, 98, 917).
+contas a pagar criadas pela nota de entrada (08, 09, 11, 19, 20).
 
 **Objetivo.** Saber quanto entra, quanto sai e quanto sobra.
 
@@ -662,7 +662,7 @@ contas a pagar criadas pela nota de entrada (20, 96, 98, 917).
 **Da Olímpia:** copiar a previsão (receber menos pagar, por data) e o aging.
 Evitar parcela sem estado "parcial", plano de contas sem tipo, a OS marcada
 como "Quitado" à mão e campos de configuração que pedem o número interno de um
-cadastro (14, 20, 96, 914, 917).
+cadastro (08, 14, 16, 19, 20).
 
 ---
 
@@ -674,7 +674,7 @@ cadastro (14, 20, 96, 914, 917).
 
 **Na Olímpia:** página inicial (não aberta) e BI Executivo: 12 indicadores com
 link para agir, um "radar" de pontos de atenção e 11 gráficos, com filtro de
-período e comparação com o período anterior (922).
+período e comparação com o período anterior (01).
 
 **Objetivo.** Dar ao dono a visão do negócio em números grandes, no celular.
 
@@ -705,7 +705,7 @@ funciona a 360 px, sem gráficos densos.
 
 **Da Olímpia:** copiar o radar com link para agir e a comparação com o período
 anterior. Evitar indicadores sem período (Gestão 360°) e o painel denso de
-computador (914, 922).
+computador (01, 17).
 
 ---
 
@@ -718,7 +718,7 @@ computador (914, 922).
 **Na Olímpia:** motor genérico com 132 relatórios em 16 categorias, uma rota
 para todos, filtros na URL, saída em PDF, Excel e CSV; o hub mostra só 78;
 tudo depende do botão "Gerar"; a fila para relatórios grandes ainda não existe
-(916 a 921).
+(19 a 21).
 
 **Objetivo.** Responder às perguntas de gestão com poucos relatórios
 flexíveis.
@@ -764,7 +764,7 @@ exportar ou agendar.
 **Da Olímpia:** copiar o motor genérico (uma rota, uma definição por
 relatório, filtros na URL, três formatos). Evitar 132 relatórios repetidos,
 dois catálogos que não batem, "Gerar" às cegas, estado em texto livre e uma
-tela "em evolução" publicada (916, 917, 919, 921).
+tela "em evolução" publicada (19, 21).
 
 ---
 
@@ -778,7 +778,7 @@ tela "em evolução" publicada (916, 917, 919, 921).
 
 **Na Olímpia:** hub com painel da cozinha, pedidos online, links e QR, mesas,
 tablet de autoatendimento com banners, PWA e configurações. O cardápio público
-só abre a partir do QR de uma mesa; sem ele, pede para escanear (04, 922).
+só abre a partir do QR de uma mesa; sem ele, pede para escanear (04).
 
 **Objetivo.** A página do comerciante onde o cliente final escolhe e pede, sem
 criar conta.
@@ -821,7 +821,7 @@ criar conta.
 **Da Olímpia:** copiar o endereço por empresa com página de instalação do PWA e
 o cardápio preso à mesa no salão. Evitar avisos de configuração dentro da
 vitrine pública, texto todo em maiúsculas, página de link sem QR nem botão de
-compartilhar, e configuração longa sem pré-visualização (93, 922).
+compartilhar, e configuração longa sem pré-visualização (04, 06).
 
 ---
 
@@ -836,7 +836,7 @@ teclado, balança pelo navegador ou pelo agente, código de pesagem, couvert,
 taxa de serviço, cliente e forma de pagamento padrão, TEF, NFC-e automática e
 senhas para sangria e cancelamento. Há também venda balcão, venda pelo
 celular, trocas e devoluções com crédito do cliente e liberação de supervisor
-(96, 915, 918).
+(02, 08, 18, 19).
 
 **Objetivo.** Vender no balcão depressa, por toque, teclado ou leitor.
 
@@ -888,7 +888,7 @@ celular, trocas e devoluções com crédito do cliente e liberação de supervis
 **Da Olímpia:** copiar o código de pesagem da balança, couvert e taxa de
 serviço, e "desfazer" com motivo. Evitar senhas guardadas nos parâmetros, 58
 opções de PDV com jargão e o faturamento em lote para quem não tem vendedor
-externo (96, 915, 918).
+externo (02, 08, 18).
 
 ---
 
@@ -902,8 +902,8 @@ externo (96, 915, 918).
 relatórios: fechamento cego por forma de pagamento (com opção de não totalizar
 o Pix), caixa central, pré-fechamento, senha no fechamento, NFC-e no
 recebimento, transferência do saldo do caixa anterior; relatórios de
-conferência cega, histórico, sangrias, suprimentos e caixa por vendedor (96,
-916).
+conferência cega, histórico, sangrias, suprimentos e caixa por vendedor (08,
+19).
 
 **Objetivo.** Controlar o dinheiro da gaveta e fechar o dia sem diferença.
 
@@ -946,7 +946,7 @@ conferir → aprovar → lançamentos no `financeiro`.
 
 **Da Olímpia:** copiar o fechamento cego configurável por forma de pagamento.
 Evitar o atalho "Caixa" que abre outra tela ("recebimento") e um selo de modo
-de baixa sem explicação (91, 96, 99).
+de baixa sem explicação (03, 08, 11).
 
 ---
 
@@ -959,7 +959,7 @@ de baixa sem explicação (91, 96, 99).
 **Na Olímpia:** comanda do garçom num PWA que pede empresa, usuário e senha do
 ERP; mesas e QR codes; tablet de autoatendimento; "Sinuca", para cobrar mesas
 por tempo; extrato de mesa no fechamento. Nenhuma tela interna foi vista (04,
-922, 96).
+08).
 
 **Objetivo.** Atender o salão do pedido do garçom até a conta fechada.
 
@@ -1003,7 +1003,7 @@ dividir → pagar → fechar → mesa livre.
 
 **Da Olímpia:** copiar o extrato de mesa e a mesa por tempo. Evitar a operação
 de salão espalhada em quatro lugares do menu e o garçom entrando com o login
-do ERP (04, 922).
+do ERP (04).
 
 ---
 
@@ -1014,7 +1014,7 @@ do ERP (04, 922).
 | P1 | funcional | opcional | `operacao` | restaurantes, lanchonetes, pizzarias, bares, marmitarias | `pedidos` | sim (planejado) |
 
 **Na Olímpia:** "Painel Cozinha" e "Balcão de Entrega" existem no menu, mas não
-foram abertos (04, 90).
+foram abertos (02, 04).
 
 **Objetivo.** A cozinha vê o que fazer e em que ordem, e avisa quando está
 pronto.
@@ -1048,7 +1048,7 @@ expedição → entregue.
 **Integrações e ativação.** Impressoras de cozinha por `perifericos`.
 
 **Da Olímpia:** nada a copiar, porque as telas não foram vistas. Evitar o
-modelo de consulta periódica com janelas modais (91, 915).
+modelo de consulta periódica com janelas modais (04, 17).
 
 ---
 
@@ -1060,7 +1060,7 @@ modelo de consulta periódica com janelas modais (91, 915).
 
 **Na Olímpia:** configuração do frete (por km ou por bairro); o app do
 entregador entra com telefone e PIN e, segundo o manual, tem GPS e prova de
-entrega; a tela de pedidos e a de entregadores não foram abertas (93, 922).
+entrega; a tela de pedidos e a de entregadores não foram abertas (05).
 
 **Objetivo.** Despachar e acompanhar as entregas feitas pelos entregadores do
 próprio comerciante.
@@ -1104,7 +1104,7 @@ entregue (prova) → acerto no fim do dia → conta a pagar ao entregador
 Parceiros de entrega são opcionais e usam a conta do comerciante.
 
 **Da Olímpia:** copiar o app do entregador com telefone e PIN. Evitar o frete
-configurado em dois lugares e um ciclo de pedido sem "pronto" (93, 922).
+configurado em dois lugares e um ciclo de pedido sem "pronto" (05, 06).
 
 ---
 
@@ -1119,8 +1119,7 @@ operações fiscais iguais para entrada e saída, locais (geral, prateleira,
 reserva, entrega futura) e grade; entrada por XML com busca automática das
 notas na SEFAZ a cada 5 minutos e manifestação em lote; entrada manual com
 custo sugerido; saída com desconto e acréscimo; troca; transferência entre
-filiais; balanço por contagem; histórico com saldo antes e depois (96, 919,
-920).
+filiais; balanço por contagem; histórico com saldo antes e depois (09, 13, 21).
 
 **Objetivo.** Saber quanto há, quanto vale e para onde foi.
 
@@ -1180,7 +1179,7 @@ depois, as regras da manifestação explicadas na tela e o custo sugerido.
 Evitar as 41 operações fiscais na mesma lista para entrada e saída, a saída
 que nasce com a operação "ENTRADA", o produto digitado pelo número na
 transferência, salvar antes de importar a venda numa devolução e um hub sem
-indicadores (96, 919, 920).
+indicadores (09, 13, 21).
 
 ---
 
@@ -1192,7 +1191,7 @@ indicadores (96, 919, 920).
 
 **Na Olímpia:** as telas de produção não foram abertas. Na Central há
 relatórios de ordens de produção, de insumos e de composição (ficha técnica), e
-o "CRM Markup" guarda metas de markup por grupo de produto (10, 916).
+o "CRM Markup" guarda metas de markup por grupo de produto (10, 19).
 
 **Objetivo.** Saber o custo real de cada produto e baixar os insumos certos.
 É "o número que o comerciante nunca sabe", segundo o brief.
@@ -1240,8 +1239,7 @@ o "CRM Markup" guarda metas de markup por grupo de produto (10, 916).
 **Integrações e ativação.** Nenhuma.
 
 **Da Olímpia:** lá a composição e o markup ficam escondidos em relatórios e
-cadastros soltos; aqui CMV e margem ficam no centro da tela do produto (10,
-916).
+cadastros soltos; aqui CMV e margem ficam no centro da tela do produto (10, 19).
 
 ---
 
@@ -1256,7 +1254,7 @@ e macOS) com uma API local que imprime (texto, ESC/POS, ZPL, imagem, PDF), abre
 a gaveta, lê a balança e lista as impressoras, pareado por um token gerado no
 ERP; os parâmetros do sistema configuram balança (porta serial ou Web Serial no
 navegador), etiqueta e carga das balanças Toledo, Filizola e Urano, gaveta e
-leitor (915).
+leitor (17, 18).
 
 **Objetivo.** Ligar o navegador ao hardware da loja sem complicação.
 
@@ -1300,7 +1298,7 @@ fornece o PC ou tablet com o agente e os aparelhos.
 **Da Olímpia:** copiar o agente único com pareamento por token, os testes
 rápidos e a carga de balança. Evitar levar para a web os parâmetros do desktop
 (temas de interface, portas COM e LPT, backup ao fechar), a lista fixa de
-impressoras e um botão "Fechar" que leva a um endereço técnico (915).
+impressoras e um botão "Fechar" que leva a um endereço técnico (17, 18).
 
 ---
 
@@ -1316,7 +1314,7 @@ CFOP, CST e alíquotas de um grupo tributário de cerca de 150 campos de texto
 livre (já com IBS, CBS e Imposto Seletivo); pré-visualização sem envio, carta
 de correção, cancelamento, nota referenciada, consulta por chave; manifestação
 e busca das notas de compra na SEFAZ; séries, CFOP, conversão de CFOP, SPED;
-17 relatórios fiscais; portal do contador (não aberto) (13, 912, 96, 921).
+17 relatórios fiscais; portal do contador (não aberto) (09, 13, 21).
 
 **Objetivo.** Emitir a nota certa num clique, a partir da venda, sem o
 comerciante precisar entender de tributação.
@@ -1387,7 +1385,7 @@ referenciada sozinha na NF-e seguinte, a consulta por chave e as regras da
 manifestação explicadas na tela. Evitar o grupo tributário de 150 campos livres,
 a lista de 20 operações com erros de digitação, digitar o número da venda para
 emitir, os códigos da SEFAZ como estado e a NFS-e misturada na mesma tela da
-NFC-e (13, 912, 921).
+NFC-e (13, 21).
 
 ---
 
@@ -1402,7 +1400,7 @@ boleto (API ou arquivo CNAB 240 e 400) e 12 de Pix, teste de conexão e de
 geração de QR; Pix no caixa e no PDV ao marcar a forma de recebimento;
 movimentação bancária; conciliação por arquivo OFX com regras por descrição e
 sem duplicar na reimportação; baixa por arquivo de retorno ou por consulta
-periódica (Sicredi) (96, 99, 918, 922).
+periódica (Sicredi) (11).
 
 **Objetivo.** Receber por Pix com confirmação automática e conhecer o saldo
 real.
@@ -1458,7 +1456,7 @@ webhook.
 **Da Olímpia:** copiar a importação de OFX sem cadastro prévio, sem duplicar,
 com regras por descrição, e o teste de geração de QR. Evitar depender só de
 arquivo de retorno ou de consulta periódica, e mostrar chaves em texto aberto
-(96, 99, 910).
+(11, 12).
 
 ---
 
@@ -1472,7 +1470,7 @@ arquivo de retorno ou de consulta periódica, e mostrar chaves em texto aberto
 dia e 5 dias depois do vencimento), botão "Executar réguas" sem prévia, links
 de pagamento (Pix, boleto, cartão) por parcela, três gateways (Asaas, Efí,
 Mercado Pago) com um único campo de chave marcado "stub"; boletos com remessa e
-retorno (910, 918).
+retorno (11, 12).
 
 **Objetivo.** Receber o que é devido sem constrangimento e sem trabalho
 manual.
@@ -1520,7 +1518,7 @@ por link, um a um.
 **Da Olímpia:** copiar a escolha da parcela em aberto com os dias de atraso
 visíveis. Evitar a régua fixa só por e-mail, o disparo sem prévia, o número
 interno da parcela como campo principal e o gateway com um único campo genérico
-(910).
+(12).
 
 ---
 
@@ -1589,7 +1587,7 @@ fornece a loja ativa no app e o aceite da integração no portal do parceiro.
 vendas ou orçamentos no ERP (adicional fora do plano Full; a equipe confirma o
 recebimento numa janela); o consultor "Advisor" usa a OpenAI, mas fica
 desativado sem uma chave que só o Super Admin da plataforma cadastra; o
-assistente de ajuda flutuante não foi testado (915, 914, 922).
+assistente de ajuda flutuante não foi testado (17, 22).
 
 **Objetivo.** O dono acompanha e pergunta sobre o negócio pelo WhatsApp, sem
 abrir o sistema.
@@ -1638,7 +1636,7 @@ próprio com a API oficial e verificação da Meta.
 
 **Da Olímpia:** lá a IA de vendas é um adicional e o consultor depende de uma
 chave que o cliente não controla. O nosso vem incluído na mensalidade, a IA é
-configurada por nós e o assistente fala com o dono (915, 914).
+configurada por nós e o assistente fala com o dono (17).
 
 ---
 
@@ -1652,7 +1650,7 @@ configurada por nós e o assistente fala com o dono (915, 914).
 
 **Na Olímpia:** o orçamento é uma venda em estado 0 que vira venda ou é
 cancelada; o relatório de orçamentos mostra só os abertos, sem funil; o botão
-"Orçamento" da OS leva para a venda balcão (918, 14).
+"Orçamento" da OS leva para a venda balcão (14, 19).
 
 **Objetivo.** Vender sob encomenda, com data marcada, sinal e aprovação do
 cliente.
@@ -1689,8 +1687,8 @@ produção na data → retirada ou entrega → saldo.
 
 **Integrações e ativação.** Nenhuma obrigatória; Pix por `bancos`.
 
-**Da Olímpia:** evitar o orçamento sem funil e sem aprovação pelo cliente (918,
-14).
+**Da Olímpia:** evitar o orçamento sem funil e sem aprovação pelo cliente (14,
+19).
 
 ---
 
@@ -1702,7 +1700,7 @@ produção na data → retirada ou entrega → saldo.
 
 **Na Olímpia:** sete telas de desossa (nova, lista, fichas, relatórios,
 derivados, rendimentos, configuração); nenhuma foi aberta. A conta de teste é
-uma casa de carnes (10, 97, 98).
+uma casa de carnes (10).
 
 **Objetivo.** Transformar a peça comprada em cortes com custo e rendimento
 reais.
@@ -1746,7 +1744,7 @@ cortes) → etiquetas.
 **Integrações e ativação.** Balança por `perifericos`.
 
 **Da Olímpia:** lá são sete telas soltas; aqui um fluxo só (escolher a ficha →
-pesar → ver rendimento e custo → confirmar) (98).
+pesar → ver rendimento e custo → confirmar) (10).
 
 ---
 
@@ -1759,7 +1757,7 @@ pesar → ver rendimento e custo → confirmar) (98).
 **Na Olímpia:** fluxo solicitação → cotação → aprovação → pedido → recebimento;
 a lista de pedidos tem os estados aberto, parcial, recebido e cancelado e não
 tem botão "Novo" (o pedido nasce da cotação); a aprovação não tem tela própria;
-há relatórios por fornecedor, por produto e de evolução de custos (920, 922).
+há relatórios por fornecedor, por produto e de evolução de custos (10, 21, 22).
 
 **Objetivo.** Comprar o necessário, do fornecedor certo, sem esquecer nada.
 
@@ -1796,7 +1794,7 @@ custo e contas a pagar.
 **Integrações e ativação.** Nenhuma obrigatória.
 
 **Da Olímpia:** copiar os estados do pedido em texto claro e a evolução de
-custos. Evitar a lista sem "Novo" e uma etapa de aprovação sem tela (920).
+custos. Evitar a lista sem "Novo" e uma etapa de aprovação sem tela (10, 21).
 
 ---
 
@@ -1808,8 +1806,7 @@ custos. Evitar a lista sem "Novo" e uma etapa de aprovação sem tela (920).
 
 **Na Olímpia:** TEF, operadoras de maquininha e controle de cartões no
 Financeiro (não abertos); TEF Dial e percentuais por modalidade nos parâmetros;
-relatório de operações de cartão com NSU, bandeira e parcelas (915, 96, 99,
-916).
+relatório de operações de cartão com NSU, bandeira e parcelas (08, 11, 18, 19).
 
 **Objetivo.** Receber no cartão sem digitar o valor duas vezes e saber quando o
 dinheiro cai.
@@ -1850,7 +1847,7 @@ comerciante fornece o contrato com a adquirente, os códigos de loja e de
 terminal e um equipamento compatível.
 
 **Da Olímpia:** as telas não foram vistas; o que apareceu (TEF Dial nos
-parâmetros) é herança do desktop (915).
+parâmetros) é herança do desktop (18).
 
 ---
 
@@ -1861,7 +1858,7 @@ parâmetros) é herança do desktop (915).
 | P2 | funcional | opcional | `relacionamento` | açaí, lanchonetes, padarias, cafeterias, varejo | `clientes`, `pedidos` | sim (planejado) |
 
 **Na Olímpia:** módulo de cashback (não aberto) e parâmetros de cashback
-(ativo, %, tipo) (911, 96).
+(ativo, %, tipo) (08, 12).
 
 **Objetivo.** Fazer o cliente voltar.
 
@@ -1897,7 +1894,7 @@ compra usa o saldo → o que não for usado expira.
 
 **Integrações e ativação.** Nenhuma.
 
-**Da Olímpia:** telas não vistas (911).
+**Da Olímpia:** telas não vistas (12).
 
 ---
 
@@ -1910,7 +1907,7 @@ compra usa o saldo → o que não for usado expira.
 **Na Olímpia:** CRM com painel, aniversários, clientes do CRM, operação,
 campanhas e "CRM Markup" (só o hub foi lido); "clientes sem comprar há X dias"
 aparece em três lugares; positivação de um mix de produtos por vendedor, sem
-gravar a campanha (910, 917).
+gravar a campanha (12, 19).
 
 **Objetivo.** Falar com o cliente certo, na hora certa.
 
@@ -1947,7 +1944,7 @@ o número do comerciante). Sem ela, o envio é manual por link.
 
 **Da Olímpia:** copiar "clientes sem comprar" e a positivação, mas com ação e
 campanha gravada. Evitar o CRM partido em seis telas, além de "Clientes" e
-"Consulta Cliente", e o nome ambíguo "CRM Markup" (910, 917).
+"Consulta Cliente", e o nome ambíguo "CRM Markup" (12, 19).
 
 ---
 
@@ -1960,7 +1957,7 @@ campanha gravada. Evitar o CRM partido em seis telas, além de "Clientes" e
 **Na Olímpia:** vitrine com endereço por empresa, PWA e API pública; nome, SEO,
 quatro cores, carrossel e banners; frete igual ao do delivery; cupons simples;
 avaliações só pendentes de moderação; pedido com estado e pagamento separados,
-gravado como venda (93, 922).
+gravado como venda (06).
 
 **Objetivo.** Vender online, com pagamento e entrega, para quem é varejo. (Para
 quem é comida, o `cardapio` já faz esse papel.)
@@ -2002,7 +1999,7 @@ se enviar por transportadora, o contrato de frete.
 
 **Da Olímpia:** copiar o endereço por empresa com PWA. Evitar as mesmas cores
 "de marketplace" para todos, texto em maiúsculas, avaliações só pendentes, o
-cupom sem regras e avisos de configuração na vitrine pública (93, 922).
+cupom sem regras e avisos de configuração na vitrine pública (06).
 
 ---
 
@@ -2017,7 +2014,7 @@ com uma rotina de recuperação a cada 5 minutos; anúncios vinculados a produto
 pelo SKU; saldo devolvido ao anúncio depois de cada venda e a cada 10 minutos;
 NF-e automática opcional; documentação interna com o estado real da ligação e
 uma tabela de problemas. A mesma documentação mostra o token do webhook em
-texto aberto (93, 922).
+texto aberto (06).
 
 **Objetivo.** Vender no Mercado Livre sem controlar o estoque em dois lugares.
 
@@ -2056,7 +2053,7 @@ comerciante fornece a conta de vendedor e a autorização OAuth.
 
 **Da Olímpia:** copiar a documentação com o estado real e a tabela de
 problemas, a ordem de vínculo pelo SKU e a rotina de recuperação. Evitar o
-segredo à vista (922).
+segredo à vista (06).
 
 ---
 
@@ -2067,7 +2064,7 @@ segredo à vista (922).
 | P2 | funcional | opcional | `operacao` | açougues, padarias, lanchonetes, praças de alimentação | `catalogo` | não |
 
 **Na Olímpia:** "Painel TV" no menu (link e configuração) e "Painel de Preços"
-no plano; não foi aberto (90).
+no plano; não foi aberto (01).
 
 **Objetivo.** Mostrar preços ou o cardápio e chamar senhas numa TV, sem cartaz
 de papel.
@@ -2096,7 +2093,7 @@ layout, categorias, token de acesso revogável).
 
 **Integrações e ativação.** Nenhuma.
 
-**Da Olímpia:** tela não vista (90).
+**Da Olímpia:** tela não vista (01).
 
 ---
 
@@ -2112,7 +2109,7 @@ deslocamento, guincho e outros; descontos em seis campos; observação para o
 cliente separada da interna; estados Aberta, Fechada, Cancelada e Quitado,
 escolhidos à mão; orçamento feito na venda balcão; chamados vindos do portal;
 app do técnico com GPS, laudo e fotos; checklists sem ligação com a OS; 12
-relatórios e comissões (14, 20, 919).
+relatórios e comissões (14, 20).
 
 **Objetivo.** Controlar o serviço do orçamento à entrega, com o cliente a
 acompanhar.
@@ -2181,7 +2178,7 @@ as parcelas a receber; dois regimes ("pela venda" e "pelo recebimento") que o
 usuário tem de saber escolher em sete relatórios; % de comissão no grupo de
 produto e no serviço; meta com prêmios para os três primeiros do ranking e
 faixas fixas que não se configuram; nenhum fechamento nem pagamento da
-comissão (20, 916, 918).
+comissão (18, 20).
 
 **Objetivo.** Calcular e pagar comissões sem planilha.
 
@@ -2222,7 +2219,7 @@ fechamento → pagamento.
 
 **Da Olímpia:** evitar obrigar o gestor a escolher entre sete relatórios,
 faixas escondidas que vêm "da planilha" de um cliente e um ciclo que nunca
-chega ao pagamento (20, 916).
+chega ao pagamento (18, 20).
 
 ---
 
@@ -2238,7 +2235,7 @@ com cobertura, mapa e "clientes sem comprar"; positivação de um mix de produto
 por vendedor; faturamento em lote dos orçamentos com 24 tipos de regra, 35
 modelos, aprovação por senha ou remota e "desfazer lote" com motivo; romaneio
 de carga com motorista, veículo, ordem de entrega, peso, volumes, separação e
-itinerário (14, 917, 918, 920).
+itinerário (02, 14, 19).
 
 **Objetivo.** Vender fora da loja e entregar por rota.
 
@@ -2285,7 +2282,7 @@ itinerário (14, 917, 918, 920).
 **Da Olímpia:** copiar a cobertura de rota, a positivação, o romaneio com
 separação e itinerário e o "desfazer" com motivo. Evitar o código da empresa no
 endereço da API, 24 tipos de regra para quem é pequeno e o mix de produtos que
-não se grava (14, 917, 918, 920).
+não se grava (02, 14, 19).
 
 ---
 
@@ -2302,7 +2299,7 @@ e reconhecimento facial; justificativas sem anexo; feriados nacionais gerados
 (sem o tipo estadual); jornada semanal com modelos rápidos; fechamento com
 horas extras, noturno, DSR e banco de horas "para a folha". Não aparecem AFD,
 AEJ nem comprovante de marcação; o espelho pede o número da pessoa e devolve
-uma página de erro crua; a senha do ponto é definida pelo gestor (912, 913).
+uma página de erro crua; a senha do ponto é definida pelo gestor (15).
 
 **Objetivo.** Registrar a jornada de forma legal e simples, sem relógio de
 parede.
@@ -2368,7 +2365,7 @@ e o consentimento dos colaboradores.
 **Da Olímpia:** copiar os modelos rápidos de jornada com o total semanal
 calculado e a cerca virtual com modo aviso. Evitar o "REP-P" só no rótulo,
 o espelho pelo número da pessoa, coordenadas digitadas à mão, a senha criada
-pelo gestor e dois apps diferentes para o colaborador (912, 913).
+pelo gestor e dois apps diferentes para o colaborador (15).
 
 ---
 
@@ -2379,7 +2376,7 @@ pelo gestor e dois apps diferentes para o colaborador (912, 913).
 | P2 | funcional | opcional | `relacionamento` | oficinas, distribuidoras, quem vende fiado, assinaturas (marmita mensal) | `clientes` | não |
 
 **Na Olímpia:** não foi aberto. Pelo manual: o cliente entra com CPF e senha,
-vê títulos e boletos, acompanha pedidos e abre chamados de OS (922, 14).
+vê títulos e boletos, acompanha pedidos e abre chamados de OS (12, 14).
 
 **Objetivo.** O cliente resolve sozinho: segunda via, pedidos, notas, OS.
 
@@ -2409,7 +2406,7 @@ por cliente).
 **Integrações e ativação.** Nenhuma; usa `bancos` e `cobranca` se estiverem
 ligados.
 
-**Da Olímpia:** evitar mais um login com senha (922).
+**Da Olímpia:** evitar mais um login com senha (12).
 
 ---
 
@@ -2429,7 +2426,7 @@ importa o ponto aprovado, o banco de horas e os vales e calcula INSS, IRRF e
 FGTS; cerca de 200 rubricas da tabela do eSocial, todas marcadas como
 "provento, valor fixo"; férias com o 1/3 como opção desmarcável; 13º; rescisão
 que, por padrão, já demite; benefícios VT, VR e VA com desconto automático;
-CNAB 240 de salários; eSocial S-1200 como arquivo (913, 914).
+CNAB 240 de salários; eSocial S-1200 como arquivo (16).
 
 **Objetivo.** Entregar ao contador o mês pronto e o holerite ao colaborador,
 sem refazer a folha.
@@ -2467,7 +2464,7 @@ contrato e a convenção coletiva.
 
 **Da Olímpia:** copiar os benefícios com desconto automático na folha. Evitar o
 processamento sem prévia, a rescisão em um clique e as rubricas mal
-classificadas (913, 914).
+classificadas (16).
 
 ---
 
@@ -2480,7 +2477,7 @@ classificadas (913, 914).
 **Na Olímpia:** um PWA por empresa (CPF ou código e senha) com holerites,
 espelho, banco de horas, vales, solicitações sem anexo e avisos com
 confirmação de leitura; comunicados sem escolha de público; é outro app,
-diferente do app do ponto (914).
+diferente do app do ponto (16).
 
 **Objetivo.** Um app só para o colaborador.
 
@@ -2505,7 +2502,7 @@ comunicado é texto simples ou Markdown seguro, nunca HTML.
 **Integrações e ativação.** Nenhuma.
 
 **Da Olímpia:** evitar dois apps para o mesmo colaborador, pedido sem anexo,
-comunicado sem público e códigos crus na tela (914).
+comunicado sem público e códigos crus na tela (16).
 
 ---
 
@@ -2518,7 +2515,7 @@ comunicado sem público e códigos crus na tela (914).
 **Na Olímpia:** documento criado sem arquivo, com um só signatário e tipo em
 texto livre; evidências (IP, geolocalização, hash); estados pendente, parcial,
 concluído e cancelado; fica dentro do Portal do Colaborador, embora sirva à OS
-(914, 922).
+(16, 22).
 
 **Objetivo.** Colher a assinatura com prova, pelo celular.
 
@@ -2542,7 +2539,7 @@ cada documento. Documento assinado não muda.
 
 **Integrações e ativação.** Nenhuma obrigatória.
 
-**Da Olímpia:** evitar esconder a assinatura num módulo de RH (914).
+**Da Olímpia:** evitar esconder a assinatura num módulo de RH (16).
 
 ---
 
@@ -2555,7 +2552,7 @@ cada documento. Documento assinado não muda.
 **Na Olímpia:** emissão de MDF-e e CT-e (telas não abertas); relatório do MDF-e
 com os estados pendente, autorizado, encerrado e cancelado; cadastro de
 veículos com os campos do MDF-e, com códigos que não parecem bater com a
-tabela oficial (921, 96).
+tabela oficial (08, 21).
 
 **Objetivo.** Emitir os documentos de transporte quando a operação exigir.
 
@@ -2579,7 +2576,7 @@ impedir o próximo para o mesmo veículo (confirmar).
 fornece o certificado A1, o RNTRC quando se aplica, os veículos e os
 condutores.
 
-**Da Olímpia:** usar as tabelas oficiais do MDF-e no cadastro de veículos (96).
+**Da Olímpia:** usar as tabelas oficiais do MDF-e no cadastro de veículos (08).
 
 ---
 
@@ -2593,7 +2590,7 @@ condutores.
 Gestão contínua) e três dores; diagnóstico por área (Sim, Parcial, Não) em 8
 áreas de gestão; problemas priorizados por Impacto × Urgência × Facilidade;
 plano 30/60/90 com metas; reuniões cujas tarefas viram ações; relatório
-executivo; consultor de IA que depende de uma chave da plataforma (914, 915).
+executivo; consultor de IA que depende de uma chave da plataforma (17).
 
 **Objetivo.** Transformar a nossa implantação e a nossa consultoria num
 produto que o comerciante vê.
@@ -2621,7 +2618,7 @@ comenta.
 
 **Da Olímpia:** copiar a matriz de prioridade e o plano 30/60/90. Evitar a IA
 que depende de uma chave fora do alcance do cliente, o "atrasada" manual e as
-metas soltas, sem indicador real (914, 915).
+metas soltas, sem indicador real (17).
 
 ---
 
@@ -2635,7 +2632,7 @@ metas soltas, sem indicador real (914, 915).
 empresa no endereço), APIs do ponto e do colaborador, conector de IA por MCP e
 monitor do agente de WhatsApp (adicionais fora do Full); a tela da API de
 força de vendas oferece um texto pronto com a especificação para colar num
-assistente de IA (14, 915, 922).
+assistente de IA (14, 17, 22).
 
 **Objetivo.** Deixar terceiros, e assistentes de IA, usarem os dados do
 comerciante com permissão.
@@ -2660,7 +2657,7 @@ de uso; a plataforma é operadora dos dados (LGPD).
 **Integrações e ativação.** As que o parceiro fizer.
 
 **Da Olímpia:** copiar a especificação pronta para IA. Evitar código de acesso
-no endereço e token de webhook à vista (14, 922).
+no endereço e token de webhook à vista (06, 14).
 
 ---
 
@@ -2752,12 +2749,12 @@ diferente.
    quer que entre; os parâmetros da empresa têm cerca de 420 opções, inclusive
    de condomínio, confecção, cartório e petshop; o MCP e o monitor de WhatsApp
    aparecem no menu e terminam numa página de bloqueio sem preço nem botão de
-   contratar (96, 915, 922). **Nós:** o menu, as configurações, os relatórios, a
+   contratar (08, 17, 22). **Nós:** o menu, as configurações, os relatórios, a
    ajuda e os avisos saem dos módulos ligados. Um módulo não contratado ou não
    aparece, ou aparece como oferta clara.
 2. **Hubs que só repetem o menu.** Cada módulo tem uma página de cartões sem
    números, que custa um clique a mais (o manual tem um hub com um só cartão)
-   (13, 922). **Nós:** a página de cada módulo mostra o que pede ação (pedidos de
+   (13, 22). **Nós:** a página de cada módulo mostra o que pede ação (pedidos de
    hoje, notas recusadas, estoque baixo).
 3. **Barra lateral só de ícones.** Quinze ícones coloridos sem nome (18, 20).
    **Nós:** rótulos visíveis e, no celular, a barra inferior com os separadores
@@ -2766,7 +2763,7 @@ diferente.
    "recebimento"; `/nfce` serve também NF-e e NFS-e; o faturamento de vendas
    fica no menu de estoque com endereço de financeiro; o SPED está dentro de
    "produção"; a assinatura eletrônica fica no portal do colaborador; a
-   operação de salão se espalha por quatro lugares do menu (04, 13, 914, 918).
+   operação de salão se espalha por quatro lugares do menu (02, 04, 13, 16).
    **Nós:** um módulo por assunto, com o nome do que faz.
 
 ### 6.2 Linguagem
@@ -2774,12 +2771,12 @@ diferente.
 5. **Herança técnica à vista.** Nome do formulário antigo em quase toda tela,
    nomes de tabela e coluna nas ajudas, códigos da SEFAZ como estado, JSON cru
    no log de alterações, "estilo Delphi" nos relatórios, comando de servidor
-   no manual (13, 916, 919, 922). **Nós:** linguagem do comerciante; códigos só
+   no manual (13, 18, 19, 22). **Nós:** linguagem do comerciante; códigos só
    num detalhe técnico.
 6. **Maiúsculas forçadas e erros de grafia.** Todo texto vira maiúsculas, até
    na vitrine pública; operações como "EXPORTÇÃO", "ORDER DE SERVIÇOS" e
    "EXTORNO"; "Novo Zona"; tradução faltando no paginador; códigos crus no app
-   do colaborador (93, 96, 914). **Nós:** o texto fica como foi escrito, e a
+   do colaborador (06, 08, 09, 16). **Nós:** o texto fica como foi escrito, e a
    revisão de texto faz parte do "pronto".
 
 ### 6.3 Formulários e cadastros
@@ -2787,28 +2784,28 @@ diferente.
 7. **Lupa em janela para tudo.** Escolher um cliente, um produto ou um técnico
    pede abrir uma janela, buscar e clicar; o campo não aceita digitação; o aviso
    fica cortado ("Clique na lup…"); a lupa de "Pessoa" mistura clientes,
-   fornecedores e colaboradores (20, 919, 920). **Nós:** busca com sugestões
+   fornecedores e colaboradores (19, 20). **Nós:** busca com sugestões
    enquanto se digita, filtrada pelo papel certo.
 8. **Números internos no lugar de nomes.** O link de pagamento pede o número da
    parcela; o espelho de ponto pede o número da pessoa (e devolve uma página
    de erro crua); as configurações da folha pedem o número do fornecedor e do
-   plano de contas; a transferência pede o número do produto (96, 910, 912,
-   914). **Nós:** sempre pela busca por nome.
+   plano de contas; a transferência pede o número do produto (09, 12, 15,
+   16). **Nós:** sempre pela busca por nome.
 9. **Padrões errados.** Zona e bairro nascem inativos; a saída de estoque nasce
    com a operação "ENTRADA"; o 1/3 de férias é uma caixa que se desmarca; a
-   rescisão vem marcada para já demitir (96, 913). **Nós:** padrões seguros, e
+   rescisão vem marcada para já demitir (08, 09, 16). **Nós:** padrões seguros, e
    ações graves com simulação e confirmação.
 10. **Formulários de especialista.** Grupo tributário com cerca de 150 campos
     de texto livre em abas dentro de abas; 58 opções só de PDV; regras de
-    faturamento com 24 tipos (912, 96, 918). **Nós:** modelos prontos por
+    faturamento com 24 tipos (02, 08, 13). **Nós:** modelos prontos por
     segmento e por regime, assistente em passos e "opções avançadas" escondidas.
 11. **Dependências escondidas.** O transportador só depois do frete; a
     manifestação fica "ignorada" porque falta a série da NF-e, configurada
     noutra tela; o botão "Novo diagnóstico" fica cinzento sem dizer porquê (13,
-    96, 914). **Nós:** checklists de prontidão e botões que dizem o que falta.
+    17). **Nós:** checklists de prontidão e botões que dizem o que falta.
 12. **Geografia pobre.** Bairro sem cidade e digitado à mão; região da rota em
     texto livre; base com 5.426 municípios (o IBGE tem cerca de 5.570);
-    coordenadas de local digitadas sem mapa (93, 96, 912). **Nós:** base
+    coordenadas de local digitadas sem mapa (05, 08, 15). **Nós:** base
     oficial, bairro ligado à cidade, área de entrega e cerca desenhadas no
     mapa.
 
@@ -2817,17 +2814,17 @@ diferente.
 13. **Estados sem padrão.** Números (0, 1, 2, 4), letras (F, P, T), textos e
     códigos da SEFAZ; "Ativo" vale 0 numa tela e 1 noutra; "Aberta" no
     relatório e "Pendente" na tela; o romaneio com nomes diferentes no
-    relatório e sem "Cancelado" (912, 919, 920, 921). **Nós:** um conjunto
+    relatório e sem "Cancelado" (13, 21). **Nós:** um conjunto
     fechado de estados por entidade, com o mesmo rótulo e a mesma cor em todo o
     sistema.
 14. **Estado do trabalho misturado com o do dinheiro.** A OS pode nascer
     "Quitada" ou "Cancelada"; a parcela não tem "parcial"; a ação do plano fica
-    "atrasada" à mão (14, 20, 915). **Nós:** o estado financeiro é calculado dos
+    "atrasada" à mão (14, 17, 20). **Nós:** o estado financeiro é calculado dos
     pagamentos e os atrasos são calculados pelo prazo.
 15. **Padrões que escondem problemas.** "OS abertas" filtra pelo mês corrente e
     esconde as mais antigas; "Todos" soma notas canceladas aos impostos; o
     mesmo relatório abre em "Concluída" numa tela e em "Todos" noutra, e os
-    totais não batem (20, 919, 920). **Nós:** pendência mostra tudo o que está
+    totais não batem (20, 21). **Nós:** pendência mostra tudo o que está
     pendente; o resultado mostra os filtros ativos.
 
 ### 6.5 Relatórios
@@ -2836,19 +2833,19 @@ diferente.
     batem (78 no hub, 132 na Central), seis jeitos de ver "vendas por
     vendedor", tudo atrás do botão "Gerar", estado em texto livre, filtros de um
     valor só, sem visões salvas nem agendamento, e uma tela de fila "em
-    evolução" publicada (916 a 921). **Nós:** poucos relatórios por pergunta,
+    evolução" publicada (19 a 21). **Nós:** poucos relatórios por pergunta,
     com "agrupar por", resultado imediato, exportação sempre visível e envio
     agendado.
 17. **Problema do dia tratado como relatório.** Nota recusada, MDF-e por
     encerrar e nota por manifestar só aparecem se alguém lembrar de gerar o
-    relatório certo (920, 921). **Nós:** pendências no painel, com alerta e ação.
+    relatório certo (21). **Nós:** pendências no painel, com alerta e ação.
 
 ### 6.6 Tempo real e avisos
 
 18. **Consulta periódica e janelas que interrompem.** Cada tela pergunta ao
     servidor por sete frentes, algumas a cada 10 segundos, e abre janelas
-    modais em fila; a fila de liberações se atualiza a cada 5 segundos (915,
-    918, 920). **Nós:** tempo real por um só canal, só dos módulos ligados, com
+    modais em fila; a fila de liberações se atualiza a cada 5 segundos (02, 17,
+    19). **Nós:** tempo real por um só canal, só dos módulos ligados, com
     aviso discreto e som configurável.
 
 ### 6.7 Segurança e configuração
@@ -2857,11 +2854,11 @@ diferente.
     guardadas nos parâmetros; senhas de e-mail e de prefeitura no mesmo
     formulário da empresa; token do webhook do Mercado Livre em texto aberto;
     código da empresa no endereço da API móvel; chave de gateway em campo de
-    texto visível (96, 910, 14, 922). **Nós:** cofre de segredos, aprovação com
+    texto visível (06, 08, 12, 14). **Nós:** cofre de segredos, aprovação com
     o login do gerente e pareamento por token de uso único.
 20. **Desktop dentro da web.** Temas de interface do Delphi, portas COM e LPT,
     "backup ao fechar o sistema"; um botão "Fechar" que leva a um endereço
-    técnico (915). **Nós:** só o que faz sentido no navegador, com configuração
+    técnico (18). **Nós:** só o que faz sentido no navegador, com configuração
     por terminal.
 
 ### 6.8 Acesso das equipes e dos clientes
@@ -2869,21 +2866,20 @@ diferente.
 21. **Um login por app.** Garçom (empresa, usuário e senha do ERP), ponto
     (código e senha do ponto, criada pelo gestor), entregador (telefone e PIN),
     colaborador (CPF e senha), técnico (empresa, usuário e senha) e cliente
-    (CPF e senha); dois apps diferentes para o mesmo colaborador (912, 914,
-    922). **Nós:** um app da equipe com PIN pessoal e convite pelo WhatsApp; link
+    (CPF e senha); dois apps diferentes para o mesmo colaborador (15, 16,
+    22). **Nós:** um app da equipe com PIN pessoal e convite pelo WhatsApp; link
     mágico para o cliente.
 
 ### 6.9 Fluxos que não fecham
 
 22. **Cobrança:** régua fixa só por e-mail, disparo sem prévia, gateways
-    "stub" (910).
-23. **Comissão:** calcula, mas não fecha nem paga; faixas escondidas (20, 916).
+    "stub" (12).
+23. **Comissão:** calcula, mas não fecha nem paga; faixas escondidas (18, 20).
 24. **Positivação:** a campanha não se grava e o botão que puxa produtos de um
-    fabricante não deve funcionar (917).
-25. **Orçamento:** fica fora da OS, sem aprovação do cliente nem funil (14,
-    918).
+    fabricante não deve funcionar (19).
+25. **Orçamento:** fica fora da OS, sem aprovação do cliente nem funil (14, 19).
 26. **Checklist:** existe, mas não se liga à OS (14).
-27. **Folha:** processa sem prévia e a rescisão demite em um clique (913).
+27. **Folha:** processa sem prévia e a rescisão demite em um clique (16).
 
 **Nós:** cada fluxo termina numa ação (pagar, cobrar, aprovar) e tem prévia
 antes de gravar.
@@ -2893,12 +2889,12 @@ antes de gravar.
 28. **Ajuda rasa e desatualizada.** O manual tem 76 frases curtas, seis
     caminhos errados, metade do sistema sem cartão e não é pesquisável; três
     ajudas (manual, documentação do Mercado Livre e assistente de IA) que não se
-    conversam (922). **Nós:** ajuda dentro de cada tela, gerada pelos módulos
+    conversam (22). **Nós:** ajuda dentro de cada tela, gerada pelos módulos
     ligados e testada contra as rotas reais; uma busca só para telas, ajuda e
     ações.
 29. **Celular de segunda.** A barra de 22 atalhos do manual ocupa uma tela
     inteira; o botão do assistente cobre a barra inferior; textos cortados;
-    rótulos não ligados aos campos (922, 14, 919). **Nós:** painel pensado para
+    rótulos não ligados aos campos (14, 19, 22). **Nós:** painel pensado para
     360 px e alvos de 48 px.
 
 ### 6.11 Comida em segundo plano
@@ -2906,7 +2902,7 @@ antes de gravar.
 30. **O food service não é o centro.** Não há iFood nem 99Food; o pedido da
     loja não tem "em preparo" nem "pronto"; o cardápio só abre com o QR de uma
     mesa; o frete é configurado em dois lugares; não há modelos fiscais prontos
-    para lanchonete ou restaurante no Simples (93, 922, 912). **Nós:** o food
+    para lanchonete ou restaurante no Simples (04, 05, 06, 13). **Nós:** o food
     service é o nosso centro, e os outros segmentos entram como módulos.
 
 ---
@@ -2915,18 +2911,18 @@ antes de gravar.
 
 | Extra | O que a Olímpia tem hoje | O que oferecemos | Módulo |
 | --- | --- | --- | --- |
-| **IA no WhatsApp com resumo diário** | agente de vendas no WhatsApp como adicional fora do Full; consultor de IA que depende de uma chave do Super Admin; nenhum resumo enviado ao dono (915, 914) | resumo diário do negócio no WhatsApp do dono, alertas (caixa, Pix, nota recusada) e perguntas em linguagem natural, com a IA configurada por nós; depois, atendente de vendas para o cliente final | `ia_whatsapp` |
-| **Ponto por webcam** | relógio em tablet com foto obrigatória, app do colaborador e app Android; sem AFD, AEJ nem comprovante visíveis (912, 913) | batida pela webcam do PC ou do tablet que já está na loja, sem relógio de parede; comprovante no WhatsApp; marcação original preservada; AFD e AEJ; feriados de Rondônia e de Porto Velho carregados | `ponto` |
-| **Webhooks bancários** | baixa por arquivo de retorno, por consulta periódica (Sicredi) ou por gateways "stub" (96, 910, 922) | Pix e boleto confirmados em tempo real pelo webhook do banco ou do gateway, com verificação e sem duplicar; o caixa e o painel atualizam na hora | `bancos`, `cobranca` |
+| **IA no WhatsApp com resumo diário** | agente de vendas no WhatsApp como adicional fora do Full; consultor de IA que depende de uma chave do Super Admin; nenhum resumo enviado ao dono (17) | resumo diário do negócio no WhatsApp do dono, alertas (caixa, Pix, nota recusada) e perguntas em linguagem natural, com a IA configurada por nós; depois, atendente de vendas para o cliente final | `ia_whatsapp` |
+| **Ponto por webcam** | relógio em tablet com foto obrigatória, app do colaborador e app Android; sem AFD, AEJ nem comprovante visíveis (15) | batida pela webcam do PC ou do tablet que já está na loja, sem relógio de parede; comprovante no WhatsApp; marcação original preservada; AFD e AEJ; feriados de Rondônia e de Porto Velho carregados | `ponto` |
+| **Webhooks bancários** | baixa por arquivo de retorno, por consulta periódica (Sicredi) ou por gateways "stub" (11, 12) | Pix e boleto confirmados em tempo real pelo webhook do banco ou do gateway, com verificação e sem duplicar; o caixa e o painel atualizam na hora | `bancos`, `cobranca` |
 | iFood e 99Food no mesmo painel | não aparecem | pedidos dos apps no painel, catálogo e disponibilidade sincronizados (Open Delivery) | `marketplaces` |
-| Pedido pelo WhatsApp sem conta do cliente | cardápio só a partir do QR da mesa (922) | página pública rápida (menos de 1,5 s em 4G), carrinho e WhatsApp com a mensagem pronta (já construído) | `cardapio` |
-| Tempo real de verdade | consulta periódica de sete frentes em todas as telas (915) | Supabase Realtime, só para os módulos ligados (já usado nos pedidos) | `pedidos` e todos |
+| Pedido pelo WhatsApp sem conta do cliente | cardápio só a partir do QR da mesa (04) | página pública rápida (menos de 1,5 s em 4G), carrinho e WhatsApp com a mensagem pronta (já construído) | `cardapio` |
+| Tempo real de verdade | consulta periódica de sete frentes em todas as telas (17) | Supabase Realtime, só para os módulos ligados (já usado nos pedidos) | `pedidos` e todos |
 | Só o que o cliente usa | o mesmo menu e os mesmos parâmetros para todos | módulos ligados por empresa, com dependências e maturidade (já em `src/lib/modulos`) | todos |
 | Implantação pela nossa equipe | sem equivalente visível | console com cadeia de produção, impersonação e importador de cardápio por foto com IA (já construído) | `conta`, `catalogo` |
 | Custo e margem no centro | composição e markup escondidos em relatórios | CMV e margem por produto e por canal, preço sugerido por markup | `producao`, `resumo` |
 | Encomendas com aprovação por link | orçamento sem aprovação nem funil | orçamento por WhatsApp, sinal por Pix, agenda de produção | `encomendas` |
 | Um app para a equipe | um login diferente por app | app único com PIN pessoal, convite por WhatsApp | `equipe`, `portal_colaborador` |
-| Página nunca derrubada e dados exportáveis | inadimplência leva a restrição e suspensão; exportação "quando houver recurso" (916) | suspensão mantém a página pública reduzida; exportação completa a qualquer momento | `conta` |
+| Página nunca derrubada e dados exportáveis | inadimplência leva a restrição e suspensão; exportação "quando houver recurso" (18) | suspensão mantém a página pública reduzida; exportação completa a qualquer momento | `conta` |
 
 ---
 

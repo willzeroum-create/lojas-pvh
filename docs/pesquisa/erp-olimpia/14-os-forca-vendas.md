@@ -24,7 +24,27 @@ que se viu, a confirmar.
 - **Três blocos no hub:** Operação (OS, Chamados, app do técnico), Cadastros
   (Serviços, Checklists) e Relatórios (a central mais 8 relatórios no hub; o
   menu lateral tem outros 4, somando 12 relatórios, 4 deles só de
-  comissões) [visto].
+  comissões) [visto]. No total há 15 relatórios de OS e comissões (8 de OS e
+  7 de comissões; os outros 3 de comissão ficam no grupo "Comissões" do menu),
+  todos descritos em
+  [20-relatorios-comissoes-os.md](20-relatorios-comissoes-os.md).
+- **Lugar no menu e no plano.** No menu lateral, o módulo fica em "Vendas &
+  Atendimento › Ordem de Serviço" (14 itens) [visto]. Na tela de planos, o
+  resumo do Premium cita "força de vendas" e o do Full cita "OS" e "portais"
+  (ver [18-parametros-plano-comissoes.md](18-parametros-plano-comissoes.md)).
+- **O que o manual diz** (cartões "Ordem de Serviço" e "Força de Vendas
+  (Android)", ver [22-manual.md](22-manual.md)) [afirmado pelo manual]:
+  - OS: criar a OS ou converter um chamado em `os-admin`; atribuir o técnico e
+    **agendar**; o técnico trabalha no PWA (com **checklist**); **faturar** a
+    OS gera venda e contas a receber; assinatura eletrônica do cliente, quando
+    usada. O botão "Abrir módulo" do cartão leva direto a
+    `/os/v/{slug-da-empresa}/tecnico/app`.
+  - Força de vendas: instalar o app Android; sincronizar catálogo e clientes;
+    fazer pedidos **sem internet** e enviá-los quando houver conexão; o pedido
+    entra no ERP.
+- **Parâmetros ligados a este módulo:** o grupo "App Força de Vendas" e o
+  e-mail automático da OS ficam na aba Parâmetros do cadastro da empresa (ver
+  [08-pessoas-empresa-acessos.md](08-pessoas-empresa-acessos.md)).
 - **A força de vendas não é uma tela de venda dentro do ERP.** O ERP só
   configura e acompanha um app Android separado ("Olimpia Força de Vendas"),
   que fala com uma API mobile. No ERP ficam a URL e o QR da API, a liberação de
@@ -34,10 +54,8 @@ que se viu, a confirmar.
   serviços, pessoas (cliente, técnico, colaborador), formas de pagamento,
   financeiro (títulos a receber), comissões e portal do cliente (origem dos
   chamados) [visto nos campos e filtros; a integração em si é inferida].
-- **Navegação global (igual em todas as telas):** menu lateral com fixados,
-  atalhos, "Operação do dia" e "Cadastros frequentes". A barra superior tem
-  busca de telas (Ctrl+K), Novidades, tema visual, notificações, menu do
-  usuário (ADMIN) e um assistente em chat [visto].
+- **Navegação global (igual em todas as telas):** menu lateral, barra superior
+  e avisos estão descritos em [22-manual.md](22-manual.md#12-moldura-e-padrões-de-interface-do-sistema-todas-as-telas).
 
 ---
 
@@ -71,6 +89,10 @@ telas.
   aparecem no hub: OS por status (`/relatorios/os-por-status`), OS por técnico
   (`/relatorios/os-por-tecnico`), OS por cliente (`/relatorios/os-por-cliente`)
   e OS faturadas (`/relatorios/os-faturadas`).
+- Os filtros e o que se sabe de cada relatório estão no
+  [20-relatorios-comissoes-os.md](20-relatorios-comissoes-os.md); a Central de
+  relatórios, no
+  [19-relatorios-vendas-financeiro.md](19-relatorios-vendas-financeiro.md).
 
 ### 2.2 Consulta de OS — `/os-admin`
 
@@ -252,7 +274,12 @@ em OS.
   deve converter o chamado em OS [inferido].
 - Nas notificações do ERP (fora do conteúdo principal) há um tipo de aviso
   para quando **o cliente assina eletronicamente a OS** [visto o texto]. A tela
-  de assinatura não foi vista.
+  de assinatura não foi vista. A moldura de todas as telas consulta de tempos
+  em tempos o canal de avisos de OS (`/erp/notificacoes/os/…`) e soma as
+  novidades no sino, junto com loja virtual, cardápio e Mercado Livre
+  [código; mecanismo geral no 19]. A assinatura eletrônica é um módulo à parte,
+  `/assinatura-admin`, descrito no
+  [16-folha-colaborador.md](16-folha-colaborador.md).
 
 ### 2.5 App do técnico (PWA) — `/os/tecnico/app`
 
@@ -383,9 +410,24 @@ compra, Dias sem compra, Data da visita, Hora, Obs.
   vazia cita o campo interno `id_rota`.
 - As visitas chegam por sincronização do app.
 - "Última compra" e "dias sem compra" vêm das vendas, e servem para ver quem
-  deixou de comprar.
+  deixou de comprar. O mesmo critério "sem comprar há X dias" existe no
+  relatório "Clientes sem comprar" (padrão 15 dias, por vendedor e rota) e no
+  relatório de visitas (ver
+  [19-relatorios-vendas-financeiro.md](19-relatorios-vendas-financeiro.md)).
+- O painel de migração de cadastros (`/cadastros/checklist`, ver 08) lista
+  esta tela como "Rota Vendedor" → `/rota-visitas` ("cobertura visitado/não
+  visitado e relatório") [visto].
 
 ### 2.10 Sub-rotas lidas fora da lista
+
+Os três relatórios abaixo foram lidos de passagem nesta exploração. As
+seções completas deles ficam nos documentos de relatórios:
+`/relatorios/rota-visitas` no
+[19-relatorios-vendas-financeiro.md](19-relatorios-vendas-financeiro.md)
+(a Central confirma 6 filtros e saída em PDF, Excel e CSV) e
+`/relatorios/os-periodo` e `/relatorios/os-abertas` no
+[20-relatorios-comissoes-os.md](20-relatorios-comissoes-os.md). O cadastro
+`/rotas` fica no 08.
 
 **`/relatorios/rota-visitas`: Visitas de rota (cobertura)**
 
@@ -445,7 +487,9 @@ valores)
    9. Quitado quando paga.
 
    A conversão do orçamento em OS e a baixa de estoque das peças não foram
-   vistas [inferido].
+   vistas [inferido]. O manual descreve o mesmo caminho, acrescentando o
+   agendamento do técnico, o checklist no PWA e que "faturar" a OS gera venda e
+   contas a receber [afirmado pelo manual].
 2. **Chamado → OS.**
    1. O cliente abre o chamado no Portal do Cliente (origem "portal").
    2. O chamado aparece em `/os-admin/chamados`, com a prioridade e o status.
@@ -461,7 +505,13 @@ valores)
       notificações do ERP).
 4. **Fechamento financeiro e comissões.**
    1. A OS fechada gera títulos a receber (filtro "Com títulos a receber").
-   2. Quando a OS é paga, passa a "Quitado".
+      Cada título aponta para a OS pelo campo `id_ordem_servico` (citado no
+      relatório "OS faturadas"); "OS faturada" quer dizer "OS com pelo menos
+      um título", e não "OS com nota fiscal" [visto na frase do relatório;
+      ver 20]. O manual diz que faturar a OS gera também uma **venda**
+      [afirmado pelo manual; não visto].
+   2. Quando a OS é paga (títulos com status 1, quitado), passa a "Quitado"
+      (4) [inferido].
    3. As comissões são calculadas por serviço (a % no cadastro de serviços), por
       recebimento (só depois de receber), por "vendas + peças" e de forma
       analítica por OS. O colaborador de cada linha da OS define quem recebe
@@ -479,6 +529,12 @@ valores)
       os pedidos.
    4. O gestor vê no ERP a cobertura, o mapa com a ordem das visitas e os
       clientes sem comprar há X dias, e pode imprimir ou gerar o relatório.
+   5. Os pedidos feitos no app (também sem internet, segundo o manual) chegam
+      ao ERP como orçamentos (venda com status 0). Em Faturamento de Vendas
+      (`/financeiro/faturamento`, ver
+      [02-vendas-pdv.md](02-vendas-pdv.md)) um operador escolhe o vendedor,
+      pode marcar "só enviados pelo app", junta os orçamentos num lote e
+      fatura [visto lá; ligação com o app deduzida].
 7. **Cadastros de apoio.**
    - Serviços: com % de comissão. Há uma migração única de "produtos-serviço"
      para este cadastro.
@@ -506,7 +562,7 @@ valores)
 | **VisitaRota** | cliente, vendedor, rota, data, hora, observação; situação (visitado ou não, calculada) | N:1 Cliente, Vendedor e Rota; chega pelo app |
 | **AparelhoForcaVendas** | apelido, tipo, GUID, CNPJ, status (liberado ou bloqueado) | N:1 Empresa; limitado pelas vagas do plano |
 | **Usuário do app técnico** | empresa, usuário, senha | login separado do ERP |
-| **TituloReceber** (financeiro) | — | gerado pela OS [inferido pelo filtro "Financeiro"] |
+| **TituloReceber** (financeiro) | `id_ordem_servico` (ou venda), valor, vencimento, pagamento, status (0 aberto, 1 quitado), colaborador e comissão (ver 20) | gerado pela OS [inferido pelo filtro "Financeiro"]; N:1 OS pelo `id_ordem_servico` |
 
 ---
 
@@ -517,14 +573,15 @@ valores)
 | GPS do aparelho | app do técnico | "Registrar chegada (GPS)" |
 | Câmera e envio de arquivos | app do técnico | "Enviar foto": exige armazenamento de arquivos |
 | PWA (app web instalável) | técnico e portal do cliente | tem login próprio, com escolha de empresa |
-| App Android nativo | força de vendas | Google Play (`com.olimpiasistemas.olimpia_mobile`); iOS em breve |
+| App Android nativo | força de vendas | Google Play (`com.olimpiasistemas.olimpia_mobile`); iOS em breve; segundo o manual, sincroniza catálogo e clientes e faz pedidos sem internet [afirmado pelo manual] |
 | API mobile REST | `/api/mobile?codigo_acesso=…` | identifica a empresa pelo código na URL; tem spec técnica e um "prompt para LLM" |
 | QR code | força de vendas | QR da URL da API e da loja |
 | Serviço de mapas | mapa da rota | marcadores numerados; não identifiquei o serviço |
 | Impressão | OS (cupom térmico e A4), mapa e lista de visitas | campos com regra de "imprime" e "não imprime" |
 | Assinatura eletrônica | OS | só vi o texto do aviso; não sei se é desenho na tela ou assinatura certificada |
 | Módulos internos | estoque, financeiro (títulos), comissões, vendas (orçamento), portal do cliente | — |
-| Fiscal (NFS-e ou NF-e) | **não visto** nas telas de OS | o relatório "OS faturadas" sugere faturamento, mas não foi aberto |
+| Fiscal (NFS-e ou NF-e) | **não visto** nas telas de OS | "OS faturadas" quer dizer OS com título a receber, não nota (ver 20). A NFS-e é gerada no módulo fiscal a partir do número da OS (ver [13-fiscal.md](13-fiscal.md)) e tem o relatório `nfse-emitidas` (ver [21-relatorios-estoque-compras-fiscal.md](21-relatorios-estoque-compras-fiscal.md)) |
+| Notificações da moldura | todas as telas | canal de avisos de OS (`/erp/notificacoes/os/…`), contado no sino [código] |
 | WhatsApp, TEF, gateways | **não vistos** neste módulo | — |
 
 ---
@@ -603,12 +660,13 @@ valores)
 | `/relatorios/rota-visitas` | lida (filtros) |
 | `/rotas` | lida |
 | `/rotas/create` | não aberta |
-| `/relatorios` | não aberta (central de relatórios) |
+| `/relatorios` | não aberta nesta exploração (central de relatórios; lida noutra passagem, ver 19) |
 | `/relatorios/os-periodo` | lida (filtros) |
 | `/relatorios/os-abertas` | lida (filtros) |
-| `/relatorios/os-servicos-executados` | **não abriu**: navegação recusada pelo filtro de permissões |
-| `/relatorios/os-pecas-utilizadas`, `/relatorios/os-por-status`, `/relatorios/os-por-tecnico`, `/relatorios/os-por-cliente`, `/relatorios/os-faturadas` | não abertas |
-| `/relatorios/comissoes-servicos`, `/relatorios/comissoes-por-recebimento`, `/relatorios/comissoes-vendas-pecas-os`, `/relatorios/comissoes-os-analitico` | não abertas |
+| `/relatorios/os-servicos-executados` | **não abriu** nesta exploração: navegação recusada pelo filtro de permissões; filtros lidos noutra passagem (ver 20) |
+| `/relatorios/os-pecas-utilizadas`, `/relatorios/os-por-status`, `/relatorios/os-por-tecnico`, `/relatorios/os-por-cliente`, `/relatorios/os-faturadas` | não abertas nesta exploração; filtros lidos noutras passagens (ver 20) |
+| `/relatorios/comissoes-servicos`, `/relatorios/comissoes-por-recebimento`, `/relatorios/comissoes-vendas-pecas-os`, `/relatorios/comissoes-os-analitico` | não abertas nesta exploração; filtros lidos noutras passagens (ver 20) |
+| `/erp/notificacoes/os/…` | avisos de OS da moldura (só no código) |
 | `/vendas` | destino do botão "Orçamento" (outro grupo) |
 | `/dashboard/modulo/cliente`, `/cliente-portal/app`, `/cliente-portal-admin/link` | Portal do Cliente, provável origem dos chamados (outro grupo) |
 | `/api/mobile?codigo_acesso={código}` | endpoint da API mobile (não é tela) |
@@ -645,13 +703,17 @@ uma permissão para o navegador embutido neste site.
   valor, comissão %, status). Pode haver tempo padrão, código de serviço
   municipal ou CNAE para NFS-e, ou outros.
 - **Formulário de checklist:** estrutura dos itens (tipos de resposta, foto,
-  obrigatoriedade) e como o checklist se aplica a uma OS.
+  obrigatoriedade) e como o checklist se aplica a uma OS. O manual diz que o
+  técnico usa o checklist no PWA [afirmado pelo manual], mas isso não foi
+  visto.
 - **App do técnico:** exige login próprio (empresa, usuário e senha), e entrar
   é proibido nesta tarefa. Agenda, detalhe da OS, laudo, fotos, GPS e
   conclusão só foram vistos como estrutura escondida, sem dados.
-- **Relatórios de OS e comissões:** faltam todos menos "OS por período", "OS
-  abertas" e "Visitas de rota", e mesmo esses só nos filtros, porque "Gerar"
-  é proibido. Falta ver o formato do resultado, os totais e a exportação.
+- **Relatórios de OS e comissões:** nesta exploração só se viram "OS por
+  período", "OS abertas" e "Visitas de rota", e só nos filtros, porque "Gerar"
+  é proibido. Noutras passagens os filtros dos 15 relatórios de OS e comissões
+  foram lidos (ver 20). Falta ver o formato do resultado, os totais e a
+  exportação.
 - **Sem registros de exemplo**, não vi:
   - as ações por linha (editar, imprimir, excluir, converter chamado em OS);
   - as etiquetas de status;
@@ -661,9 +723,12 @@ uma permissão para o navegador embutido neste site.
 - **Mapa da rota:** não abri o modal, por isso não sei que serviço de mapas
   usa nem como a ordem das visitas é definida.
 - **Integrações a confirmar:**
-  - quando os títulos a receber são gerados (ao fechar a OS?);
+  - quando os títulos a receber são gerados (ao fechar a OS ou numa ação de
+    "faturar", como diz o manual?) e se o faturamento cria também uma venda;
   - quando o estoque das peças é baixado (ao lançar ou ao fechar?);
-  - se a OS emite NFS-e ou NF-e ("OS faturadas");
+  - se a OS emite NF-e para as peças. Já se sabe que "OS faturadas" não tem a
+    ver com nota (é OS com título) e que a NFS-e é gerada no módulo fiscal
+    pelo número da OS (ver 13 e 20);
   - como o orçamento da Venda Balcão vira OS;
   - onde e como o cliente assina eletronicamente a OS.
 - **Portal do Cliente**, a origem provável dos chamados, pertence a outro grupo

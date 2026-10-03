@@ -291,8 +291,8 @@ vulnerabilidade. Se oferecermos garantia, ela tem de estar no contrato.
 
 ### Como receber
 
-Pix Automático para a mensalidade (exige que o **nosso** CNPJ tenha pelo
-menos seis meses) ou boleto. Ver
+Pix Automático para a mensalidade (o BCB exige CNPJ ativo; alguns PSPs podem
+exigir CNPJ com mais de seis meses, **não confirmado**) ou boleto. Ver
 [integracoes.md](integracoes.md#3-bancos-pix-boletos-e-conciliação).
 
 ---

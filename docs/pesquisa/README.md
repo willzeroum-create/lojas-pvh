@@ -71,8 +71,8 @@ verificador. O que é relevante e não pôde ser conferido está marcado
    próprio. A Vercel não valida certificado de cliente (mTLS) na entrada:
    Banco do Brasil e Bradesco pedem proxy. Começar por Efí, Asaas, Inter ou
    Cora. Open Finance custa a partir de R$ 2.500/mês: fora por enquanto. O Pix
-   Automático serve para cobrar a nossa mensalidade, se o nosso CNPJ tiver
-   pelo menos seis meses. ([integracoes](integracoes.md#3-bancos-pix-boletos-e-conciliação))
+   Automático serve para cobrar a nossa mensalidade (o BCB pede CNPJ ativo;
+   prazo mínimo de seis meses de CNPJ **não confirmado**, pode ser regra do PSP). ([integracoes](integracoes.md#3-bancos-pix-boletos-e-conciliação))
 
 7. **Fiscal: comprar, não construir, e o calendário aperta.** Empresas do
    Simples só emitem NFS-e pelo Emissor Nacional a partir de **01/11/2026**;

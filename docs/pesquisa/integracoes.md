@@ -421,8 +421,10 @@ export interface ProvedorRecorrencia {
 - Homologação no sandbox de cada PSP (a Efí tem cadeia de certificados de
   homologação própria).
 - **Para a agência:** receber a nossa própria mensalidade por Pix Automático
-  reduz inadimplência e dispensa cartão, desde que o nosso CNPJ tenha mais de
-  seis meses.
+  reduz inadimplência e dispensa cartão. O FAQ do BCB só exige CNPJ ativo; a
+  exigência de mais de seis meses de CNPJ aparece numa leitura da Res. BCB 482
+  (Finsiders) e pode ser política do PSP **(não confirmado)**: perguntar ao PSP
+  escolhido.
 
 ---
 
