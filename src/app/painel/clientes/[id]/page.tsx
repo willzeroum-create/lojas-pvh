@@ -158,7 +158,7 @@ export default async function PaginaFichaPessoa({ params }: { params: Promise<{ 
           </h2>
           <p className="text-xs text-carvao">Pedidos cancelados não entram nos totais</p>
         </div>
-        <dl className="grid grid-cols-2 gap-3 lg:grid-cols-[1.3fr_1fr_1fr]">
+        <dl className="grid grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] gap-3 lg:grid-cols-[1.3fr_1fr_1fr]">
           <div className="col-span-2 min-w-0 rounded-xl bg-tinta p-5 text-papel lg:col-span-1 lg:p-6">
             <dt className="text-sm font-medium text-papel-3">Total gasto</dt>
             <dd className="mt-2 text-3xl font-bold tracking-tight break-words tabular-nums lg:text-4xl">
@@ -179,7 +179,7 @@ export default async function PaginaFichaPessoa({ params }: { params: Promise<{ 
           </div>
           <div className="min-w-0 rounded-xl border border-areia bg-branco p-4 lg:p-6">
             <dt className="text-sm font-medium text-carvao">Ticket médio</dt>
-            <dd className="mt-2 text-[1.65rem] leading-tight font-bold tracking-tight break-words tabular-nums lg:text-3xl">
+            <dd className="mt-2 text-2xl leading-tight font-bold tracking-tight break-words tabular-nums lg:text-3xl">
               {formatarBRL(compras.ticketMedio)}
               <span className="mt-3 block text-xs font-normal tracking-normal text-carvao">Por pedido</span>
             </dd>

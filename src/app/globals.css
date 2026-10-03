@@ -215,6 +215,11 @@
   opacity: 0.7;
 }
 
+/* O vermelho de texto precisa de mais contraste sobre a superfície de erro. */
+.clientes-area .bg-vermelho-clara.text-vermelho {
+  color: #a82a1a;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html:has(.clientes-area) {
     scroll-behavior: auto;
@@ -226,5 +231,62 @@
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Financeiro: mesma leitura de balcão dos cadastros, com foco explícito. */
+.financeiro-area {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.financeiro-area :is(h1, h2, h3) {
+  font-family: var(--font-sans);
+}
+
+.financeiro-area :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-tinta);
+  outline-offset: 3px;
+}
+
+.financeiro-area :is(input, select, textarea) {
+  scroll-margin-block: 6rem;
+}
+
+.financeiro-area input[type='date'] {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.financeiro-area) {
+    scroll-behavior: auto;
+  }
+
+  .financeiro-area *,
+  .financeiro-area *::before,
+  .financeiro-area *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* A variante depende do espaço do cartão, não da largura da janela. */
+.financeiro-grafico {
+  container-type: inline-size;
+}
+
+.financeiro-grafico-amplo {
+  display: none;
+}
+
+@container (min-width: 680px) {
+  .financeiro-grafico-amplo {
+    display: block;
+  }
+
+  .financeiro-grafico-compacto {
+    display: none;
   }
 }

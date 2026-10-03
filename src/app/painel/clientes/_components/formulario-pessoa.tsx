@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Check, Search, X } from 'lucide-react'
-import { useRef, useState, useTransition, type InputHTMLAttributes, type ReactNode } from 'react'
+import { useEffect, useRef, useState, useTransition, type InputHTMLAttributes, type ReactNode } from 'react'
 import { formatarDocumento, normalizarDocumento } from '@/lib/dominio/documento'
 import { formatarTelefone } from '@/lib/dominio/telefone'
 import type { ConsentimentoLinha, PessoaEnderecoLinha, PessoaLinha } from '@/lib/supabase/tipos'
@@ -28,7 +28,7 @@ type Props = {
 }
 
 const ESTILO_CAMPO =
-  'min-h-12 w-full min-w-0 rounded-xl border border-areia bg-branco px-3.5 py-3 text-base text-tinta placeholder:text-carvao/60 focus:border-tinta focus:outline-none focus:ring-2 focus:ring-tinta/15 disabled:cursor-wait disabled:bg-papel-2 aria-[invalid=true]:border-vermelho'
+  'min-h-12 w-full min-w-0 scroll-mt-28 rounded-xl border border-areia bg-branco px-3.5 py-3 text-base text-tinta placeholder:text-carvao/60 focus:border-tinta focus:outline-none focus:ring-2 focus:ring-tinta/15 disabled:cursor-wait disabled:bg-papel-2 aria-[invalid=true]:border-vermelho'
 const ESTILO_BOTAO =
   'inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-areia bg-papel px-4 py-3 text-sm font-bold text-tinta transition-colors hover:bg-papel-2 disabled:cursor-wait disabled:opacity-60'
 
@@ -89,7 +89,10 @@ function Secao({
       className="overflow-hidden rounded-2xl border border-areia bg-branco"
     >
       <div className="flex items-start gap-3 border-b border-areia bg-papel-2/50 px-4 py-5 sm:px-6">
-        <span className="pt-0.5 text-xs font-extrabold tracking-wider text-carvao" aria-hidden="true">
+        <span
+          className="w-5 shrink-0 pt-0.5 text-xs font-extrabold tracking-wider text-carvao tabular-nums"
+          aria-hidden="true"
+        >
           {numero}
         </span>
         <div className="min-w-0">
@@ -109,6 +112,7 @@ export function FormularioPessoa({ pessoa, enderecoPrincipal, consentimentoMarke
   const formulario = useRef<HTMLFormElement>(null)
   const resumoErro = useRef<HTMLDivElement>(null)
   const campoEtiqueta = useRef<HTMLInputElement>(null)
+  const destinoDoFoco = useRef<string | null>(null)
   const [salvando, iniciarSalvamento] = useTransition()
   const [navegando, setNavegando] = useState(false)
   const [consulta, setConsulta] = useState<'cnpj' | 'cep' | null>(null)
@@ -156,6 +160,15 @@ export function FormularioPessoa({ pessoa, enderecoPrincipal, consentimentoMarke
     ([chave]) => chave === 'etiquetas' || chave.startsWith('etiquetas.'),
   )?.[1]
 
+  useEffect(() => {
+    if (ocupado || destinoDoFoco.current === null) return
+    const nome = destinoDoFoco.current
+    destinoDoFoco.current = null
+    const campo = formulario.current?.elements.namedItem(nome.startsWith('etiquetas.') ? 'etiquetas' : nome)
+    if (campo instanceof HTMLElement) campo.focus()
+    else resumoErro.current?.focus()
+  }, [ocupado, erros, erroGeral])
+
   function limparErro(campo: string) {
     setErros((anteriores) => {
       const atualizados = { ...anteriores }
@@ -185,13 +198,7 @@ export function FormularioPessoa({ pessoa, enderecoPrincipal, consentimentoMarke
   }
 
   function focarErro(porCampo?: Record<string, string>) {
-    requestAnimationFrame(() => {
-      const nome = Object.keys(porCampo ?? {})[0]
-      const campo =
-        nome && formulario.current?.elements.namedItem(nome.startsWith('etiquetas.') ? 'etiquetas' : nome)
-      if (campo instanceof HTMLElement) campo.focus()
-      else resumoErro.current?.focus()
-    })
+    destinoDoFoco.current = Object.keys(porCampo ?? {})[0] ?? ''
   }
 
   function adicionarEtiqueta() {
@@ -343,6 +350,19 @@ export function FormularioPessoa({ pessoa, enderecoPrincipal, consentimentoMarke
       className="space-y-5"
       aria-busy={ocupado}
     >
+      <div className="sticky top-3 z-20 flex min-w-0 items-center justify-between gap-3 rounded-2xl border border-areia bg-papel p-3 shadow-cartao">
+        <span className="min-w-0 pl-1 text-sm font-bold text-carvao">
+          {pessoa ? 'Editar cadastro' : 'Novo cadastro'}
+        </span>
+        <button
+          type="submit"
+          disabled={ocupado}
+          className="inline-flex min-h-12 min-w-24 shrink-0 items-center justify-center gap-2 rounded-xl bg-tangerina px-4 py-3 text-sm font-bold text-tinta transition-colors hover:bg-tangerina/90 disabled:cursor-wait disabled:opacity-60"
+        >
+          {navegando ? 'Abrindo…' : salvando ? 'Salvando…' : 'Salvar'}
+          <Check size={17} aria-hidden="true" />
+        </button>
+      </div>
       <fieldset disabled={ocupado} className="min-w-0 space-y-5">
         <legend className="sr-only">{pessoa ? 'Editar cadastro' : 'Novo cadastro'}</legend>
         <Secao

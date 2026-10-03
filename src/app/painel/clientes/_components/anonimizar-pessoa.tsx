@@ -21,7 +21,9 @@ export function AnonimizarPessoa({ id, nome }: { id: string; nome: string }) {
     const corpo = document.body
     const rolagemAnterior = corpo.style.overflow
     corpo.style.overflow = 'hidden'
-    return () => { corpo.style.overflow = rolagemAnterior }
+    return () => {
+      corpo.style.overflow = rolagemAnterior
+    }
   }, [aberto])
 
   function abrirConfirmacao() {

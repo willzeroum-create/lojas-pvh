@@ -151,7 +151,7 @@ export function NavPainel({ separadores }: { separadores: Separador[] }) {
         <div className="flex max-h-[85dvh] flex-col pb-segura">
           <div className="flex items-start justify-between gap-4 border-b border-areia px-5 py-4">
             <div>
-              <h2 id={`${id}-titulo`} className="text-xl font-bold">
+              <h2 id={`${id}-titulo`} className="font-sans text-xl font-bold">
                 Mais seções
               </h2>
               <p id={`${id}-descricao`} className="mt-1 text-sm text-carvao">
