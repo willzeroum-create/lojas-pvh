@@ -10,7 +10,7 @@ import { autorDe, exigirAprovacao, exigirModulo } from '@/lib/auth/guardas'
 import { ErroDados, pedeGerente } from '@/lib/dados/erros'
 import { anularBatida, baterPonto, configurarPontoMembro, detalheBatida, lancarBatidaManual, pessoasNoRelogio, type PessoaNoRelogio } from '@/lib/dados/ponto'
 import { ROTULO_BATIDA } from '@/lib/dominio/ponto'
-import { podeGerirPonto } from '@/lib/equipe/papeis'
+import { donoOuGerente } from '@/lib/equipe/papeis'
 import { uuid, validar, z } from '@/lib/validacao/zod'
 
 export type Resultado<T = object> = ({ ok: true } & T) | { ok: false; erro: string; porCampo?: Record<string, string>; precisaGerente?: boolean }
@@ -20,7 +20,7 @@ const pinGerente = z.preprocess((v) => (v === '' ? undefined : v), z.string().re
 
 async function contextoGestao() {
   const ctx = await exigirModulo('ponto')
-  if (!podeGerirPonto(ctx.equipe)) throw new ErroDados('Só o gerente ajusta o ponto.')
+  if (!donoOuGerente(ctx.equipe)) throw new ErroDados('Só o gerente ajusta o ponto.')
   return ctx
 }
 

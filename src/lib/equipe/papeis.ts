@@ -33,6 +33,7 @@ export const ACOES_SENSIVEIS = {
   diferenca_caixa: 'Fechar caixa com diferença',
   estornar_estoque: 'Estornar movimento de estoque',
   ajustar_ponto: 'Ajustar batida de ponto',
+  ajustar_cashback: 'Ajustar cashback de cliente',
 } as const
 
 export type AcaoSensivel = keyof typeof ACOES_SENSIVEIS
@@ -75,7 +76,7 @@ export function pinAceitavel(pin: string): { ok: true } | { ok: false; motivo: s
   return { ok: true }
 }
 
-/** Espelho de ponto, batidas manuais e anulações: só o dono (sem PIN de equipe) ou um gerente. */
-export function podeGerirPonto(equipe: { papel: Papel } | null): boolean {
+/** Gestão (espelho e ajustes de ponto, configuração do cashback): só o dono (sem PIN de equipe) ou um gerente. */
+export function donoOuGerente(equipe: { papel: Papel } | null): boolean {
   return !equipe || equipe.papel === 'gerente'
 }

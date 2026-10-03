@@ -121,6 +121,7 @@ export async function venderAction(entrada: unknown): Promise<Resultado<{ venda:
         lojaId: loja.id,
         itens: r.dados.itens.map((i) => ({ produtoId: i.produtoId, quantidade: i.quantidade, desconto: i.desconto, observacao: i.observacao })),
         descontoGeral: r.dados.descontoGeral,
+        cashback: r.dados.cashback,
         pagamentos: r.dados.pagamentos,
         clienteId: r.dados.clienteId,
         clienteNome: r.dados.clienteNome,

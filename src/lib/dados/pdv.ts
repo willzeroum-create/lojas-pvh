@@ -42,6 +42,8 @@ export type EntradaVenda = {
   lojaId: string
   itens: Array<{ produtoId: string; quantidade: number; desconto?: number; observacao?: string }>
   descontoGeral: number
+  /** Cashback usado: soma-se ao desconto e é conferido e lançado na mesma transacção. */
+  cashback?: number
   pagamentos: PagamentoVenda[]
   clienteId?: string
   clienteNome?: string
@@ -79,14 +81,18 @@ export async function registarVendaBalcao(
       const p = porId.get(i.produtoId)!
       return { produtoId: p.id, nome: p.nome, quantidade: i.quantidade, precoUnitario: Number(p.preco_promocional ?? p.preco), desconto: i.desconto }
     }),
-    entrada.descontoGeral,
+    entrada.descontoGeral + (entrada.cashback ?? 0),
     entrada.pagamentos,
   )
   if (!calculo.ok) throw new ErroDados(calculo.falta ? `${calculo.erro} Faltam R$ ${calculo.falta.toFixed(2).replace('.', ',')}.` : calculo.erro)
 
-  const r = await supabase.rpc('registar_venda_balcao', {
+  const cashback = entrada.cashback ?? 0
+  if (cashback > 0 && !entrada.clienteId) throw new ErroDados('Identifique o cliente para usar o cashback.')
+  const r = await supabase.rpc(cashback > 0 ? 'registar_venda_com_cashback' : 'registar_venda_balcao', {
     p: {
       tenant_id: tenantId,
+      cashback,
+      autor: autor,
       loja_id: entrada.lojaId,
       cliente_id: entrada.clienteId ?? null,
       cliente_nome: entrada.clienteNome ?? null,

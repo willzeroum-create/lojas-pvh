@@ -32,6 +32,8 @@ export const esquemaVenda = z.object({
     .min(1, 'Adicione pelo menos um produto')
     .max(200),
   descontoGeral: quantia,
+  /** Parte paga com o cashback do cliente (entra como desconto; a base confere o saldo). */
+  cashback: quantia.optional(),
   pagamentos: z
     .array(z.object({ forma: z.enum(formas), valor: dinheiro.refine((v) => v > 0, 'Valor inválido') }))
     .min(1, 'Escolha a forma de pagamento')

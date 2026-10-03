@@ -13,6 +13,8 @@ drop policy if exists "fotos: tenant substitui" on storage.objects;
 drop policy if exists "fotos: tenant apaga" on storage.objects;
 
 drop table if exists
+  public.fidelidade_movimentos,
+  public.fidelidade_config,
   public.ponto_batidas,
   public.cobrancas_pix,
   public.documentos_fiscais, public.webhooks_recebidos, public.integracoes_segredos, public.integracoes,
@@ -30,6 +32,11 @@ drop table if exists
   public.membros, public.operadores, public.tenants
   cascade;
 
+drop function if exists public.registar_venda_com_cashback(jsonb);
+drop function if exists app.lancar_resgate_cashback(uuid, uuid, numeric, uuid, numeric, text);
+drop function if exists app.cashback_do_pedido();
+drop function if exists app.cashback_em_vigor(uuid);
+drop function if exists public.saldo_cashback(uuid, uuid, date, uuid);
 drop function if exists app.ponto_valida_batida();
 drop function if exists app.ponto_so_anula();
 drop function if exists public.concluir_entrada(uuid, uuid, text, uuid);

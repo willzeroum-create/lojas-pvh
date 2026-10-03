@@ -603,6 +603,31 @@ export type PontoBatidaLinha = {
   criado_em: string
 }
 
+export type FidelidadeConfigLinha = {
+  tenant_id: string
+  ativo: boolean
+  percentual: number
+  validade_dias: number
+  resgate_minimo: number
+  limite_resgate_pct: number
+  atualizado_em: string
+}
+
+export type TipoMovimentoCashback = 'credito' | 'devolucao' | 'resgate' | 'estorno' | 'ajuste'
+
+export type FidelidadeMovimentoLinha = {
+  id: string
+  tenant_id: string
+  pessoa_id: string
+  tipo: TipoMovimentoCashback
+  valor: number
+  pedido_id: string | null
+  expira_em: string | null
+  autor: string | null
+  motivo: string | null
+  criado_em: string
+}
+
 export type AuditoriaLinha = {
   id: string
   tenant_id: string
@@ -1388,6 +1413,8 @@ export type Database = {
       estoque_vinculos: Tabela<EstoqueVinculoLinha, 'produto_id' | 'insumo_id' | 'fator'>
       inventarios: Tabela<InventarioLinha, 'id' | 'descricao' | 'autor_nome' | 'itens' | 'ajustes' | 'criado_em'>
       equipe_membros: Tabela<EquipeMembroLinha, 'id' | 'ativo' | 'tentativas_falhas' | 'bloqueado_ate' | 'criado_em' | 'registra_ponto' | 'jornada_minutos'>
+      fidelidade_config: Tabela<FidelidadeConfigLinha, 'ativo' | 'percentual' | 'validade_dias' | 'resgate_minimo' | 'limite_resgate_pct' | 'atualizado_em'>
+      fidelidade_movimentos: Tabela<FidelidadeMovimentoLinha, 'id' | 'pedido_id' | 'expira_em' | 'autor' | 'motivo' | 'criado_em'>
       ponto_batidas: Tabela<
         PontoBatidaLinha,
         | 'id' | 'momento' | 'origem' | 'foto_path' | 'latitude' | 'longitude' | 'precisao_m' | 'dispositivo' | 'motivo' | 'registado_por'
@@ -1448,6 +1475,8 @@ export type Database = {
       anonimizar_pessoa: { Args: { p_tenant: string; p_pessoa: string }; Returns: undefined }
       financeiro_padrao: { Args: { p_tenant: string }; Returns: undefined }
       registar_venda_balcao: { Args: { p: Json }; Returns: PedidoLinha }
+      registar_venda_com_cashback: { Args: { p: Json }; Returns: PedidoLinha }
+      saldo_cashback: { Args: { p_tenant: string; p_pessoa: string; p_dia?: string | null; p_sem_pedido?: string | null }; Returns: number }
       abrir_comanda: {
         Args: { p_tenant: string; p_loja: string; p_mesa: string | null; p_identificador: string | null; p_pessoas: number; p_garcom: string }
         Returns: ComandaLinha

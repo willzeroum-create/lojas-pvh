@@ -32,7 +32,7 @@ export type GrupoModulo = keyof typeof GRUPOS_MODULO
 export type Maturidade = 'funcional' | 'pre_funcional' | 'planejado'
 
 /** Ícones dos separadores do painel; o componente de navegação traduz o nome. */
-export type IconeModulo = 'fiscal' | 'pix' | 'ponto' | 'relatorios' | 'equipe' | 'estoque' | 'pdv' | 'caixa' | 'comandas' | 'cozinha' | 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
+export type IconeModulo = 'fiscal' | 'pix' | 'ponto' | 'relatorios' | 'fidelidade' | 'equipe' | 'estoque' | 'pdv' | 'caixa' | 'comandas' | 'cozinha' | 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
 
 export type ModuloModelo = {
   id: string
@@ -217,10 +217,11 @@ export const MODULOS = [
   {
     id: 'fidelidade',
     nome: 'Fidelidade e cashback',
-    descricao: 'Pontos ou cashback por compra, com extrato para o cliente.',
+    descricao: 'Cashback em cada compra, usado no caixa, com validade e extrato por cliente.',
     grupo: 'relacionamento',
-    maturidade: 'planejado',
+    maturidade: 'funcional',
     requer: ['clientes'],
+    painel: { href: '/painel/fidelidade', rotulo: 'Cashback', icone: 'fidelidade', ordem: 28 },
   },
   {
     id: 'ordens_servico',
