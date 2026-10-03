@@ -12,13 +12,19 @@ insert into public.tenant_modulos (tenant_id, modulo, ativo, ativado_em)
 select 'a0000000-0000-4000-8000-000000000001', m, true, now()
   from unnest(array[
     'pedidos', 'cardapio', 'resumo', 'clientes', 'financeiro', 'caixa', 'pdv',
-    'comandas', 'cozinha', 'estoque', 'producao', 'equipe', 'ponto', 'ia_whatsapp'
+    'comandas', 'cozinha', 'estoque', 'producao', 'equipe', 'ponto', 'relatorios',
+    'fidelidade', 'ia_whatsapp'
   ]) as m
 on conflict (tenant_id, modulo) do update set ativo = true;
 
 -- Dados de partida do financeiro e da cozinha.
 select public.financeiro_padrao('a0000000-0000-4000-8000-000000000001');
 select public.cozinha_padrao('a0000000-0000-4000-8000-000000000001');
+
+-- Cashback de 5 %, válido 90 dias, uso a partir de R$ 5 e até metade da compra.
+insert into public.fidelidade_config (tenant_id, ativo, percentual, validade_dias, resgate_minimo, limite_resgate_pct)
+values ('a0000000-0000-4000-8000-000000000001', true, 5, 90, 5, 50)
+on conflict (tenant_id) do update set ativo = true;
 
 -- Lanches e porções vão para a Cozinha; bebidas não passam pela cozinha.
 insert into public.estacao_categorias (tenant_id, categoria_id, estacao_id)

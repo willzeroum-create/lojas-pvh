@@ -21,8 +21,13 @@
 | Estoque | funcional | Entrada pelo XML da NF-e (vínculo lembrado, fator CX12→12), saídas, estorno, inventário, mínimo, baixa automática na venda | 0014 |
 | Produção / ficha técnica | funcional | Insumos, ficha por produto, CMV, margem e preço sugerido; baixa dos insumos na venda | 0014 |
 | Equipe e PIN | funcional | PIN por pessoa no tablet da loja, papéis, aprovação do gerente, auditoria | 0015 |
+| Ponto eletrônico | funcional | Relógio no tablet: PIN + foto da webcam + local; batidas imutáveis (só se anulam, com motivo e PIN do gerente); espelho do mês com intervalo, extras, noturno (hora de 52min30) e inconsistências CLT; impressão | 0019, 0020 |
+| Relatórios | funcional | Vendas por dia, hora, canal e pagamento, comparação com o período anterior, curva ABC, exportação CSV para Excel | — |
+| Fidelidade (cashback) | funcional | % de volta em cada compra de cliente identificado (balcão ou cardápio), validade FIFO, uso no PDV na mesma transacção da venda, estorno e devolução ao cancelar, ajuste com PIN | 0021 |
 | Resumo diário no WhatsApp | pré-funcional | Envio manual já funciona; automático às 22h precisa da API oficial (abaixo) | — |
-| Fiscal, Bancos/Pix, Cobrança, Delivery, Fidelidade, OS, Ponto, Relatórios, Loja virtual, Marketplaces | planejado | No catálogo, visíveis no console como "em construção" | — |
+| Nota fiscal (NFC-e) | pré-funcional | Emissão pela Focus NFe a partir da venda, DANFE, cancelamento, dados fiscais por produto; falta o contrato e o certificado A1 de cada cliente (§6) | 0016 |
+| Pix (Bancos) | pré-funcional | QR dinâmico do Mercado Pago no PDV, avulso e nas contas a receber; baixa automática pelo webhook; falta a conta Mercado Pago de cada cliente (§6) | 0017 |
+| Cobrança, Delivery, OS, Loja virtual, Marketplaces | planejado | No catálogo, visíveis no console como "em construção" | — |
 
 Regras que atravessam tudo: dados sempre por `tenant_id` com RLS (provado em
 `tests/bd/*.test.ts`); dinheiro nunca se apaga (estorno/cancelamento);
@@ -36,16 +41,20 @@ auditoria quando a equipe está ligada.
    [operacao.md](operacao.md) §1).
 2. Base de dados — uma das duas:
    - **projeto que já tinha 0001–0007**: correr por ordem no SQL Editor
-     `supabase/atualizacao-0008.sql` … `atualizacao-0015.sql`;
+     `supabase/atualizacao-0008.sql` … `atualizacao-0021.sql`;
    - **projeto novo**: `supabase/instalacao-completa.sql` e depois `supabase/seed.sql`.
 3. Demonstração: `supabase/demo-erp.sql` liga todos os módulos prontos na
-   Lanchonete da Praça, com mesas, estações, ficha técnica, estoque inicial e
-   o gerente **Demo Gerente, PIN 2580**.
+   Lanchonete da Praça, com mesas, estações, ficha técnica, estoque inicial,
+   cashback de 5 % e o gerente **Demo Gerente, PIN 2580** (que também bate ponto).
 4. `pnpm tipos` regenera `src/lib/supabase/tipos.ts` a partir do projeto (os
    tipos foram escritos à mão enquanto a base estava fora; conferir o diff).
 5. Variáveis novas (ver `.env.example` e `pnpm env:verificar`):
    `NEXT_PUBLIC_WHATSAPP_COMERCIAL`, `PVH_SEGREDO_EQUIPE` (opcional),
-   `CRON_SECRET` e `WHATSAPP_*` (só para o resumo automático).
+   `PVH_CHAVE_SEGREDOS` e `PVH_SEGREDO_WEBHOOKS` (opcionais, mas fixe-os antes
+   de guardar o primeiro token de cliente), `CRON_SECRET` e `WHATSAPP_*`
+   (só para o resumo automático).
+6. Storage: a migração 0020 cria o bucket privado `ponto` (fotos das batidas);
+   conferir em Storage que existe e não é público.
 
 ## 3. Roteiro de teste de ponta a ponta
 
@@ -68,6 +77,18 @@ Com `pnpm dev` (entra-se sem login em localhost) e a demonstração aplicada:
 10. **Clientes**: o cliente do pedido do cardápio aparece sozinho; consultar
     um CNPJ; anonimizar.
 11. **Resumo**: "Enviar no meu WhatsApp" com o texto do dia.
+12. **Ponto**: no relógio, Demo Gerente → Entrada → PIN 2580 → foto; bater de
+    novo logo a seguir é recusado ("espere um minuto"); Saída para intervalo,
+    Volta, Saída; no espelho, ver horas, intervalo e foto; lançar uma batida
+    manual e anular outra (pedem PIN do gerente; ficam na auditoria); imprimir.
+13. **Cashback**: no PDV, procurar a cliente do pedido do cardápio → vender
+    R$ 100 → ela ganha R$ 5; numa segunda venda usar o cashback (aparece o
+    saldo e o máximo); cancelar essa venda → o cashback usado volta.
+14. **Relatórios**: últimos 7 dias com as vendas acima; curva ABC; exportar
+    vendas e abrir no Excel (acentos e vírgula decimal certos).
+15. **Pix e Nota** (só com as contas de teste do §6): console → Integrações →
+    tokens de homologação; no PDV gerar o QR e pagar no app de teste; emitir a
+    NFC-e de uma venda e abrir o DANFE.
 
 ## 4. Resumo automático no WhatsApp (pré-funcional)
 
@@ -81,7 +102,25 @@ cliente por mês.
 
 ## 5. Próximos módulos (ordem do catálogo)
 
-Fiscal com emissor parceiro (Focus NFe/NFE.io), Bancos e Pix com webhook
-(Efí, Asaas, Inter ou Cora), Delivery próprio, Relatórios (motor único),
-Fidelidade, Ordens de serviço, Ponto (controlo interno primeiro; REP-P só com
-decisão — ver pesquisa/integracoes.md).
+Delivery próprio (entregadores, taxa por bairro, acompanhamento), Cobrança
+(boleto e lembretes), Ordens de serviço, Loja virtual e Marketplaces (iFood e
+99Food pelo formato Open Delivery).
+
+## 6. Integrações de cada cliente (pré-funcionais)
+
+**Nota fiscal (Focus NFe).** Por cliente: conta na Focus (a agência pode ser
+revenda), certificado digital A1 da empresa enviado à Focus, CSC da NFC-e
+gerado na SEFAZ-RO, inscrição estadual. No console → ficha → Integrações:
+CNPJ, IE, regime, token de homologação; colar a URL de aviso nos gatilhos da
+Focus. Testar em homologação (sem valor fiscal) e só depois produção. Em cada
+produto vendido: NCM (8 dígitos), CFOP 5102 e CSOSN 102 servem para quase
+todo o Simples.
+
+**Pix (Mercado Pago).** Por cliente: conta Mercado Pago da empresa → Suas
+integrações → criar aplicação → token de acesso (APP_USR-…); em Webhooks,
+evento "Pagamentos", colar a URL de aviso do console e copiar a assinatura
+secreta para o campo da chave. QR dinâmico sem mTLS, funciona na Vercel.
+
+**Ponto.** Não é REP-P certificado (Portaria 671/2021): serve ao controlo
+interno de quem tem até 20 empregados, que a CLT não obriga a registar
+(art. 74 §2). Acima disso, só com REP-P registado — decisão comercial.

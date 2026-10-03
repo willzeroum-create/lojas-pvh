@@ -21,7 +21,7 @@ afterAll(async () => {
 describe('demonstração do ERP', () => {
   it('liga os módulos, cria mesas, estações, ficha e gerente', async () => {
     const [m] = await bd.consultar<{ n: number }>({ tipo: 'servidor' }, 'select count(*)::int n from public.tenant_modulos where tenant_id = $1 and ativo', [TENANT])
-    expect(m!.n).toBe(14)
+    expect(m!.n).toBe(16)
     const [mesas] = await bd.consultar<{ n: number }>({ tipo: 'servidor' }, 'select count(*)::int n from public.mesas where tenant_id = $1', [TENANT])
     expect(mesas!.n).toBe(8)
     const [g] = await bd.consultar<{ papel: string }>({ tipo: 'servidor' }, `select papel from public.equipe_membros where tenant_id = $1`, [TENANT])
