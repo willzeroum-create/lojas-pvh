@@ -3,7 +3,7 @@ import 'server-only'
 import { pinAceitavel, type Papel } from '@/lib/equipe/papeis'
 import { conferirPin, hashPin } from '@/lib/equipe/pin'
 import { clienteAdmin, type Cliente } from '@/lib/supabase/server'
-import { ErroDados, garantir, ouErro } from './erros'
+import { ErroAprovacao, ErroDados, garantir, ouErro } from './erros'
 
 export type MembroEquipe = {
   id: string
@@ -86,7 +86,7 @@ export async function entrarComPin(tenantId: string, membroId: string, pin: stri
 export async function aprovarComPinGerente(tenantId: string, pin: string): Promise<string> {
   const gerentes = await hashesDoTenant(tenantId, { papel: 'gerente' })
   const aprovador = gerentes.find((g) => (!g.bloqueado_ate || new Date(g.bloqueado_ate) <= new Date()) && conferirPin(pin, g.pin_hash))
-  if (!aprovador) throw new ErroDados('PIN de gerente inválido.')
+  if (!aprovador) throw new ErroAprovacao('PIN de gerente inválido.')
   return aprovador.nome
 }
 

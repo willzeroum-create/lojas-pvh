@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRightLeft, Check, ChevronRight, Clock3, Plus, RefreshCw
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, useTransition } from 'react'
+import { useAprovacaoGerente } from '@/components/ui/aprovacao-gerente'
 import type { DetalheComanda, ItemComanda, MesaMapa } from '@/lib/dados/comandas'
 import type { ProdutoPdv } from '@/lib/dados/pdv'
 import { formatarBRL } from '@/lib/dominio/moeda'
@@ -68,6 +69,7 @@ export function AtendimentoComanda({
   cancelamentoExigePin: boolean
 }) {
   const router = useRouter()
+  const { solicitar, dialogo } = useAprovacaoGerente()
   const [atualizando, atualizar] = useTransition()
   const [ocupado, definirOcupado] = useState(false)
   const trava = useRef(false)
@@ -81,7 +83,6 @@ export function AtendimentoComanda({
   const [rascunho, definirRascunho] = useState(0)
   const [cancelando, definirCancelando] = useState<ItemComanda | null>(null)
   const [motivo, definirMotivo] = useState('')
-  const [pinGerente, definirPinGerente] = useState('')
   const [mesaDestino, definirMesaDestino] = useState('')
   const [comandaOrigem, definirComandaOrigem] = useState('')
   const [operacaoMesa, definirOperacaoMesa] = useState<'transferir' | 'juntar' | null>(null)
@@ -149,11 +150,63 @@ export function AtendimentoComanda({
   }
 
   function abrirSecao(proxima: Secao) {
-    definirPinGerente('')
     definirSecao(proxima)
     definirErro('')
     definirOperacaoMesa(null)
     if (proxima === 'fechar') definirPagamentoVisitado(true)
+  }
+
+  function cancelarItem(item: ItemComanda) {
+    if (bloqueado || trava.current || motivo.trim().length < 3) return
+    const comandaId = comanda.id
+    const entrada = { itemId: item.id, motivo: motivo.trim() }
+    let respostaIncerta = false
+    definirErro('')
+    definirAviso('')
+    async function confirmarCancelamento(pinGerente?: string) {
+      if (respostaIncerta)
+        return { ok: false as const, erro: 'Atualize e confira o consumo antes de repetir o cancelamento.' }
+      trava.current = true
+      definirOcupado(true)
+      try {
+        const resposta = await cancelarItemComandaAction(comandaId, { ...entrada, pinGerente })
+        if (!resposta.ok) {
+          const mensagem = [...new Set([resposta.erro, ...Object.values(resposta.porCampo ?? {})])].join(' ')
+          if (!pinGerente && !('precisaGerente' in resposta && resposta.precisaGerente)) definirErro(mensagem)
+          return { ...resposta, erro: mensagem }
+        }
+        definirAviso('Item cancelado. O motivo permanece no histórico.')
+        definirCancelando(null)
+        definirMotivo('')
+        atualizar(() => router.refresh())
+        return resposta
+      } catch {
+        respostaIncerta = true
+        definirIncerto(true)
+        const mensagem =
+          'A resposta não chegou. Atualize e confira o consumo antes de repetir o cancelamento.'
+        if (!pinGerente) definirErro(mensagem)
+        atualizar(() => router.refresh())
+        return { ok: false as const, erro: mensagem }
+      } finally {
+        trava.current = false
+        definirOcupado(false)
+      }
+    }
+    // O sinal calculado pelo servidor também cobre as actions que ainda não retornam precisaGerente.
+    if (cancelamentoExigePin) {
+      solicitar(
+        (pinGerente) => confirmarCancelamento(pinGerente),
+        'Um gerente precisa aprovar o cancelamento deste item.',
+      )
+      return
+    }
+    atualizar(async () => {
+      const resposta = await confirmarCancelamento()
+      if (!resposta.ok && 'precisaGerente' in resposta && resposta.precisaGerente) {
+        solicitar((pinGerente) => confirmarCancelamento(pinGerente), resposta.erro)
+      }
+    })
   }
 
   return (
@@ -440,7 +493,6 @@ export function AtendimentoComanda({
                                 onClick={() => {
                                   definirCancelando(item)
                                   definirMotivo('')
-                                  definirPinGerente('')
                                   definirErro('')
                                 }}
                               >
@@ -454,28 +506,9 @@ export function AtendimentoComanda({
                     {aberta && cancelando?.id === item.id && podeCancelar && (
                       <form
                         className="mt-4 space-y-3 rounded-lg border border-vermelho/40 bg-vermelho-clara p-3"
-                        onSubmit={async (evento) => {
+                        onSubmit={(evento) => {
                           evento.preventDefault()
-                          if (
-                            motivo.trim().length < 3 ||
-                            (cancelamentoExigePin && !/^[0-9]{4,6}$/.test(pinGerente))
-                          )
-                            return
-                          const pin = pinGerente
-                          definirPinGerente('')
-                          await executar(
-                            () =>
-                              cancelarItemComandaAction(comanda.id, {
-                                itemId: item.id,
-                                motivo: motivo.trim(),
-                                pinGerente: pin || undefined,
-                              }),
-                            'Item cancelado. O motivo permanece no histórico.',
-                            () => {
-                              definirCancelando(null)
-                              definirMotivo('')
-                            },
-                          )
+                          cancelarItem(item)
                         }}
                       >
                         <fieldset disabled={bloqueado} className="min-w-0 space-y-3">
@@ -497,27 +530,9 @@ export function AtendimentoComanda({
                             placeholder="Ex.: cliente desistiu do pedido"
                           />
                           {cancelamentoExigePin && (
-                            <label className="block text-sm font-bold" htmlFor="pin-cancelamento-comanda">
-                              PIN do gerente
-                              <input
-                                id="pin-cancelamento-comanda"
-                                type="password"
-                                inputMode="numeric"
-                                autoComplete="off"
-                                required
-                                pattern="[0-9]{4,6}"
-                                minLength={4}
-                                maxLength={6}
-                                className="pdv-campo mt-1"
-                                value={pinGerente}
-                                onChange={(evento) =>
-                                  definirPinGerente(evento.target.value.replace(/\D/g, ''))
-                                }
-                              />
-                              <span className="mt-1 block text-xs font-normal text-carvao">
-                                Aprovação necessária para cancelar este item. Use de 4 a 6 números.
-                              </span>
-                            </label>
+                            <p className="text-sm text-carvao">
+                              O gerente será chamado para aprovar este cancelamento.
+                            </p>
                           )}
                           <div className="flex flex-wrap gap-2">
                             <button
@@ -525,7 +540,6 @@ export function AtendimentoComanda({
                               className="pdv-botao"
                               onClick={() => {
                                 definirCancelando(null)
-                                definirPinGerente('')
                               }}
                             >
                               Manter item
@@ -533,11 +547,7 @@ export function AtendimentoComanda({
                             <button
                               type="submit"
                               className="pdv-botao border-vermelho! text-[#a82a1a]!"
-                              disabled={
-                                motivo.trim().length < 3 ||
-                                bloqueado ||
-                                (cancelamentoExigePin && !/^[0-9]{4,6}$/.test(pinGerente))
-                              }
+                              disabled={motivo.trim().length < 3 || bloqueado}
                             >
                               {ocupado ? 'Cancelando…' : 'Cancelar item'}
                             </button>
@@ -732,6 +742,7 @@ export function AtendimentoComanda({
           />
         </div>
       )}
+      {dialogo}
     </div>
   )
 }

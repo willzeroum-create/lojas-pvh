@@ -40,6 +40,7 @@ export type EstadoIntegracao = 'aguardando_credenciais' | 'em_homologacao' | 'em
 export type AmbienteIntegracao = 'homologacao' | 'producao'
 export type TipoDocumentoFiscal = 'nfce' | 'nfe' | 'nfse'
 export type EstadoDocumentoFiscal = 'enfileirado' | 'processando' | 'autorizado' | 'rejeitado' | 'denegado' | 'cancelado' | 'contingencia' | 'erro'
+export type EstadoCobrancaPix = 'pendente' | 'pago' | 'expirado' | 'cancelado' | 'devolvido' | 'erro'
 export type PapelEquipe = 'gerente' | 'caixa' | 'garcom' | 'cozinha' | 'atendente'
 export type EstadoPreparo = 'aguardando' | 'em_preparo' | 'pronto' | 'entregue' | 'cancelado'
 export type EstadoComanda = 'aberta' | 'conta' | 'fechada' | 'cancelada'
@@ -635,6 +636,26 @@ export type DocumentoFiscalLinha = {
   mensagem: string | null
   cpf_cnpj_destinatario: string | null
   valor_total: number
+  criado_em: string
+  atualizado_em: string
+}
+
+export type CobrancaPixLinha = {
+  id: string
+  tenant_id: string
+  txid: string
+  provedor: string
+  provedor_id: string | null
+  valor: number
+  descricao: string
+  origem: 'pdv' | 'parcela' | 'comanda' | 'manual'
+  origem_id: string | null
+  estado: EstadoCobrancaPix
+  copia_cola: string | null
+  qr_base64: string | null
+  expira_em: string | null
+  pago_em: string | null
+  mensagem: string | null
   criado_em: string
   atualizado_em: string
 }
@@ -1373,6 +1394,10 @@ export type Database = {
           },
         ]
       >
+      cobrancas_pix: Tabela<
+        CobrancaPixLinha,
+        'id' | 'provedor_id' | 'origem_id' | 'estado' | 'copia_cola' | 'qr_base64' | 'expira_em' | 'pago_em' | 'mensagem' | 'criado_em' | 'atualizado_em'
+      >
       tenant_modulos: Tabela<
         TenantModuloLinha,
         'ativo' | 'configuracao' | 'ativado_em' | 'criado_em' | 'atualizado_em',
@@ -1403,6 +1428,11 @@ export type Database = {
       cozinha_padrao: { Args: { p_tenant: string }; Returns: undefined }
       estornar_movimento_estoque: { Args: { p_tenant: string; p_movimento: string; p_autor: string }; Returns: undefined }
       concluir_entrada_estoque: { Args: { p_tenant: string; p_entrada: string; p_autor: string }; Returns: number }
+      concluir_entrada: {
+        Args: { p_tenant: string; p_entrada: string; p_autor: string; p_categoria: string | null }
+        Returns: Json
+      }
+      salvar_ficha: { Args: { p_tenant: string; p_produto: string; p_linhas: Json }; Returns: number }
       aplicar_inventario: { Args: { p_tenant: string; p_descricao: string; p_contagem: Json; p_autor: string }; Returns: string }
       cancelar_venda_balcao: {
         Args: { p_tenant: string; p_pedido: string; p_motivo: string; p_autor: string }
@@ -1430,6 +1460,7 @@ export type Database = {
       tipo_movimento_estoque: TipoMovimentoEstoque
       estado_entrada: EstadoEntrada
       papel_equipe: PapelEquipe
+      estado_cobranca_pix: EstadoCobrancaPix
       estado_integracao: EstadoIntegracao
       ambiente_integracao: AmbienteIntegracao
       tipo_documento_fiscal: TipoDocumentoFiscal

@@ -13,6 +13,7 @@ drop policy if exists "fotos: tenant substitui" on storage.objects;
 drop policy if exists "fotos: tenant apaga" on storage.objects;
 
 drop table if exists
+  public.cobrancas_pix,
   public.documentos_fiscais, public.webhooks_recebidos, public.integracoes_segredos, public.integracoes,
   public.auditoria, public.equipe_membros,
   public.inventarios, public.estoque_vinculos, public.estoque_entrada_itens, public.estoque_entradas, public.estoque_movimentos,
@@ -28,6 +29,8 @@ drop table if exists
   public.membros, public.operadores, public.tenants
   cascade;
 
+drop function if exists public.concluir_entrada(uuid, uuid, text, uuid);
+drop function if exists public.salvar_ficha(uuid, uuid, jsonb);
 drop function if exists public.criar_pedido(jsonb);
 drop function if exists public.anonimizar_pedidos(integer);
 drop function if exists public.anonimizar_pessoa(uuid, uuid);
@@ -45,6 +48,7 @@ drop function if exists public.aplicar_inventario(uuid, text, jsonb, text);
 drop type if exists public.tipo_pessoa;
 drop type if exists public.estado_comanda;
 drop type if exists public.papel_equipe;
+drop type if exists public.estado_cobranca_pix;
 drop type if exists public.estado_documento_fiscal;
 drop type if exists public.tipo_documento_fiscal;
 drop type if exists public.ambiente_integracao;

@@ -25,6 +25,8 @@
 --   0014_estoque.sql
 --   0015_equipe.sql
 --   0016_integracoes_fiscal.sql
+--   0017_pix.sql
+--   0018_atomicidade_estoque.sql
 -- =============================================================================
 
 begin;
@@ -2889,5 +2891,177 @@ create policy "documentos_fiscais: membros e operadores"
 -- integracoes_segredos e webhooks_recebidos: sem políticas para authenticated = sem acesso.
 
 insert into app.migracoes (nome) values ('0016_integracoes_fiscal.sql') on conflict (nome) do nothing;
+
+
+-- #############################################################################
+-- 0017_pix.sql
+-- #############################################################################
+
+-- =============================================================================
+-- 0017 — Pix (módulo `bancos`, pré-funcional)
+--
+-- Cobrança Pix dinâmica (QR + copia-e-cola) pelo PSP do cliente, com o nosso
+-- `txid` como chave de idempotência. A confirmação vem por webhook (assinado)
+-- ou por consulta; paga, a cobrança de uma parcela dá baixa sozinha no
+-- financeiro (carteira Pix). O PDV usa a cobrança para mostrar o QR e só
+-- conclui a venda quando o Pix cai.
+-- =============================================================================
+
+create type public.estado_cobranca_pix as enum ('pendente', 'pago', 'expirado', 'cancelado', 'devolvido', 'erro');
+
+create table public.cobrancas_pix (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid not null references public.tenants (id) on delete cascade,
+  txid          text not null check (txid ~ '^[A-Za-z0-9]{26,35}$'),
+  provedor      text not null,
+  provedor_id   text,
+  valor         numeric(12, 2) not null check (valor > 0),
+  descricao     text not null check (length(descricao) between 1 and 140),
+  origem        text not null check (origem in ('pdv', 'parcela', 'comanda', 'manual')),
+  origem_id     uuid,
+  estado        public.estado_cobranca_pix not null default 'pendente',
+  copia_cola    text,
+  qr_base64     text,
+  expira_em     timestamptz,
+  pago_em       timestamptz,
+  mensagem      text,
+  criado_em     timestamptz not null default now(),
+  atualizado_em timestamptz not null default now(),
+  unique (tenant_id, txid)
+);
+comment on column public.cobrancas_pix.txid is 'Nosso identificador (idempotência no PSP e na conciliação).';
+create index cobrancas_pix_tenant_idx on public.cobrancas_pix (tenant_id, criado_em desc);
+create index cobrancas_pix_origem_idx on public.cobrancas_pix (tenant_id, origem, origem_id);
+
+create trigger cobrancas_pix_atualizado_em
+  before update on public.cobrancas_pix
+  for each row execute function app.carimbar_atualizado_em();
+
+-- O estado "pago" só chega pelo servidor (webhook ou consulta ao PSP): os
+-- membros criam e cancelam, mas não marcam como pago.
+grant select, insert on public.cobrancas_pix to authenticated;
+grant update (estado) on public.cobrancas_pix to authenticated;
+grant all on public.cobrancas_pix to service_role;
+
+alter table public.cobrancas_pix enable row level security;
+create policy "cobrancas_pix: membros e operadores"
+  on public.cobrancas_pix for all to authenticated
+  using (tenant_id in (select app.tenants_do_utilizador()) or (select app.e_operador()))
+  with check (tenant_id in (select app.tenants_do_utilizador()) or (select app.e_operador()));
+
+create function app.cobranca_pix_so_cancela()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  -- Quem não é o servidor só pode cancelar uma cobrança pendente.
+  if current_user = 'authenticated' and not (old.estado = 'pendente' and new.estado = 'cancelado') then
+    raise exception 'só se cancela uma cobrança pendente' using errcode = 'check_violation';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger cobrancas_pix_so_cancela
+  before update of estado on public.cobrancas_pix
+  for each row execute function app.cobranca_pix_so_cancela();
+
+insert into app.migracoes (nome) values ('0017_pix.sql') on conflict (nome) do nothing;
+
+
+-- #############################################################################
+-- 0018_atomicidade_estoque.sql
+-- #############################################################################
+
+-- =============================================================================
+-- 0018 — Estoque: operações compostas numa só transacção
+--
+-- 1. salvar_ficha: troca a ficha técnica inteira de uma vez (antes eram duas
+--    chamadas; se a segunda falhasse, o produto ficava sem ficha).
+-- 2. concluir_entrada: conclui a entrada e, se vier uma categoria, lança a
+--    nota como UMA conta a pagar com uma parcela por duplicata, tudo junto.
+--    Origem 'compra' + id da entrada: o índice titulos_origem_unica impede
+--    lançar a mesma nota duas vezes.
+-- Ambas security invoker: a RLS de quem chama continua a valer.
+-- =============================================================================
+
+create function public.salvar_ficha(p_tenant uuid, p_produto uuid, p_linhas jsonb)
+returns integer
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  n integer;
+begin
+  if jsonb_typeof(p_linhas) <> 'array' then
+    raise exception 'ficha inválida' using errcode = 'check_violation';
+  end if;
+  delete from public.fichas where tenant_id = p_tenant and produto_id = p_produto;
+  insert into public.fichas (tenant_id, produto_id, insumo_id, quantidade)
+  select p_tenant, p_produto, (l ->> 'insumo_id')::uuid, (l ->> 'quantidade')::numeric
+  from jsonb_array_elements(p_linhas) l;
+  get diagnostics n = row_count;
+  return n;
+end;
+$$;
+
+create function public.concluir_entrada(p_tenant uuid, p_entrada uuid, p_autor text, p_categoria uuid)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  itens integer;
+  e public.estoque_entradas;
+  v_titulo uuid;
+  parcelas integer := 0;
+  hoje date := (now() at time zone 'America/Porto_Velho')::date;
+begin
+  itens := public.concluir_entrada_estoque(p_tenant, p_entrada, p_autor);
+  if p_categoria is null then
+    return jsonb_build_object('itens', itens, 'parcelas', 0);
+  end if;
+
+  select * into e from public.estoque_entradas where tenant_id = p_tenant and id = p_entrada;
+  if not exists (
+    select 1 from jsonb_array_elements(e.duplicatas) d
+    where (d ->> 'valor')::numeric > 0 and (d ->> 'vencimento') ~ '^\d{4}-\d{2}-\d{2}$'
+  ) then
+    return jsonb_build_object('itens', itens, 'parcelas', 0);
+  end if;
+
+  insert into public.titulos (tenant_id, tipo, descricao, pessoa_id, categoria_id, origem, origem_id, competencia, documento)
+  values (
+    p_tenant, 'pagar',
+    left('NF ' || coalesce(e.numero_nota, 's/n') || ' · ' || coalesce(e.fornecedor_nome, 'Fornecedor'), 120),
+    e.fornecedor_id, p_categoria, 'compra', p_entrada,
+    coalesce(e.emitida_em, hoje), left(e.numero_nota, 60)
+  )
+  on conflict (tenant_id, origem, origem_id) where origem_id is not null do nothing
+  returning id into v_titulo;
+  if v_titulo is null then
+    return jsonb_build_object('itens', itens, 'parcelas', 0);
+  end if;
+
+  insert into public.parcelas (tenant_id, titulo_id, numero, vencimento, valor)
+  select p_tenant, v_titulo, row_number() over (order by (d ->> 'vencimento')::date, ord), (d ->> 'vencimento')::date, round((d ->> 'valor')::numeric, 2)
+  from jsonb_array_elements(e.duplicatas) with ordinality as x(d, ord)
+  where (d ->> 'valor')::numeric > 0 and (d ->> 'vencimento') ~ '^\d{4}-\d{2}-\d{2}$';
+  get diagnostics parcelas = row_count;
+
+  return jsonb_build_object('itens', itens, 'parcelas', parcelas, 'titulo_id', v_titulo);
+end;
+$$;
+
+revoke execute on function public.salvar_ficha(uuid, uuid, jsonb) from public, anon;
+revoke execute on function public.concluir_entrada(uuid, uuid, text, uuid) from public, anon;
+grant execute on function public.salvar_ficha(uuid, uuid, jsonb) to authenticated, service_role;
+grant execute on function public.concluir_entrada(uuid, uuid, text, uuid) to authenticated, service_role;
+
+insert into app.migracoes (nome) values ('0018_atomicidade_estoque.sql') on conflict (nome) do nothing;
 
 commit;

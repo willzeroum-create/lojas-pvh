@@ -74,3 +74,18 @@ describe('integrações', () => {
     ).rejects.toThrow(/duplicate key/)
   })
 })
+
+describe('cobranças Pix', () => {
+  it('o painel cria e cancela, mas não marca como pago', async () => {
+    const [c] = await bd.consultar<{ id: string }>(
+      { tipo: 'utilizador', id: donoA },
+      `insert into public.cobrancas_pix (tenant_id, txid, provedor, valor, descricao, origem) values ($1, 'abcdefabcdefabcdefabcdefabcdef12', 'mercadopago', 10, 'Teste', 'manual') returning id`,
+      [tenantA],
+    )
+    await expect(
+      bd.consultar({ tipo: 'utilizador', id: donoA }, `update public.cobrancas_pix set estado = 'pago' where id = $1`, [c!.id]),
+    ).rejects.toThrow(/só se cancela/)
+    await bd.consultar({ tipo: 'utilizador', id: donoA }, `update public.cobrancas_pix set estado = 'cancelado' where id = $1`, [c!.id])
+    await bd.consultar({ tipo: 'servidor' }, `update public.cobrancas_pix set estado = 'pago' where id = $1`, [c!.id])
+  })
+})

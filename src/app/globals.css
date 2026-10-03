@@ -501,3 +501,21 @@
     transition: none !important;
   }
 }
+
+/* Estoque e equipe: leitura de balcão, foco visível e movimento opcional. */
+:is(.estoque-area, .equipe-area) { min-width: 0; overflow-wrap: anywhere; }
+:is(.estoque-area, .equipe-area) :is(h1, h2, h3) { font-family: var(--font-sans); }
+:is(.estoque-area, .equipe-area) :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--color-tangerina-escura);
+  outline-offset: 3px;
+}
+:is(.estoque-area, .equipe-area) :is(input, select, textarea) { scroll-margin-block: 6rem; }
+@media (prefers-reduced-motion: reduce) {
+  :is(.estoque-area, .equipe-area, .resumo-whatsapp-area, .dialogo-operacao) *,
+  :is(.estoque-area, .equipe-area, .resumo-whatsapp-area, .dialogo-operacao) *::before,
+  :is(.estoque-area, .equipe-area, .resumo-whatsapp-area, .dialogo-operacao) *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

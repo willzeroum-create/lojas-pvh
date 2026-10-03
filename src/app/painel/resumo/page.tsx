@@ -5,6 +5,7 @@ import { obterLojaPrincipal } from '@/lib/dados/lojas'
 import { listarPedidosDaSemana } from '@/lib/dados/pedidos'
 import { formatarBRL } from '@/lib/dominio/moeda'
 import { calcularResumo } from '@/lib/dominio/resumo'
+import { ResumoWhatsapp } from './_components/resumo-whatsapp'
 
 export const metadata: Metadata = { title: 'Resumo' }
 
@@ -58,6 +59,7 @@ export default async function PaginaResumo() {
         )}
       </section>
       <p className="text-xs text-cinza">Conta pedidos não cancelados, pelo horário da loja.</p>
+      <ResumoWhatsapp />
     </div>
   )
 }

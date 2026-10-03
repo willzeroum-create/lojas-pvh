@@ -9,7 +9,7 @@
 import { revalidatePath } from 'next/cache'
 import { autorDe, exigirAprovacao, exigirModulo } from '@/lib/auth/guardas'
 import { abrirCaixa, conferirCaixa, detalheCaixa, fecharCaixa, movimentarCaixa, type ResultadoFechamento } from '@/lib/dados/caixa'
-import { ErroDados } from '@/lib/dados/erros'
+import { ErroDados, pedeGerente } from '@/lib/dados/erros'
 import { obterLojaPrincipal } from '@/lib/dados/lojas'
 import { cancelarVendaBalcao, registarVendaBalcao, subtotalDaVenda, type VendaRegistada } from '@/lib/dados/pdv'
 import { conferir } from '@/lib/dominio/caixa'
@@ -28,7 +28,6 @@ export type Resultado<T = object> = ({ ok: true } & T) | { ok: false; erro: stri
 
 const mensagem = (e: unknown, padrao: string) => (e instanceof ErroDados ? e.message : padrao)
 const pin = z.object({ pinGerente: z.preprocess((v) => (v === '' ? undefined : v), z.string().regex(/^\d{4,6}$/).optional()) })
-const pedeGerente = (e: unknown) => e instanceof ErroDados && /PIN/.test(e.message)
 
 function revalidar() {
   revalidatePath('/painel/caixa', 'layout')

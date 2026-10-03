@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useId, useRef, useState, useTransition, type FormEvent } from 'react'
+import { useAprovacaoGerente } from '@/components/ui/aprovacao-gerente'
 import type { VendaDoCaixa } from '@/lib/dados/pdv'
 import { ROTULO_FORMA } from '@/lib/dominio/caixa'
 import { formatarBRL } from '@/lib/dominio/moeda'
@@ -20,6 +21,7 @@ const horario = new Intl.DateTimeFormat('pt-BR', {
 
 function LinhaVenda({ venda }: { venda: VendaDoCaixa }) {
   const roteador = useRouter()
+  const { solicitar, dialogo } = useAprovacaoGerente()
   const identificador = useId()
   const botaoAbrir = useRef<HTMLButtonElement>(null)
   const campoMotivo = useRef<HTMLTextAreaElement>(null)
@@ -59,27 +61,40 @@ function LinhaVenda({ venda }: { venda: VendaDoCaixa }) {
       campoMotivo.current?.focus()
       return
     }
-    enviando.current = true
+    const entrada = { pedidoId: venda.id, motivo: texto }
+    let respostaIncerta = false
     definirErro(null)
     definirErros({})
-    iniciarTransicao(async () => {
+    async function cancelarVenda(pinGerente?: string) {
+      if (respostaIncerta)
+        return { ok: false as const, erro: 'Atualize as vendas antes de tentar novamente.' }
+      enviando.current = true
       try {
-        const resultado = await cancelarVendaAction({ pedidoId: venda.id, motivo: texto })
+        const resultado = await cancelarVendaAction({ ...entrada, pinGerente })
         if (!resultado.ok) {
-          definirErro(resultado.erro)
+          if (!resultado.precisaGerente) definirErro(resultado.erro)
           definirErros(resultado.porCampo ?? {})
-          campoMotivo.current?.focus()
-          return
+          if (!pinGerente && !resultado.precisaGerente) campoMotivo.current?.focus()
+          return resultado
         }
         definirConcluido(true)
         definirAberto(false)
         roteador.refresh()
+        return resultado
       } catch {
-        definirErro(
-          'Não foi possível confirmar o cancelamento. Confira a conexão e atualize as vendas antes de tentar novamente.',
-        )
+        respostaIncerta = true
+        const mensagem =
+          'Não foi possível confirmar o cancelamento. Confira a conexão e atualize as vendas antes de tentar novamente.'
+        definirErro(mensagem)
+        return { ok: false as const, erro: mensagem }
       } finally {
         enviando.current = false
+      }
+    }
+    iniciarTransicao(async () => {
+      const resultado = await cancelarVenda()
+      if (!resultado.ok && 'precisaGerente' in resultado && resultado.precisaGerente) {
+        solicitar((pinGerente) => cancelarVenda(pinGerente), resultado.erro)
       }
     })
   }
@@ -220,6 +235,7 @@ function LinhaVenda({ venda }: { venda: VendaDoCaixa }) {
             ? 'Cancelando a venda. Aguarde.'
             : ''}
       </p>
+      {dialogo}
     </li>
   )
 }

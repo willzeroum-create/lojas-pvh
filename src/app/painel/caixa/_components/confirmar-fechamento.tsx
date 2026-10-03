@@ -4,6 +4,7 @@ import { Check, LockKeyhole } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useId, useRef, useState, useTransition, type FormEvent } from 'react'
+import { useAprovacaoGerente } from '@/components/ui/aprovacao-gerente'
 import type { LinhaConferencia } from '@/lib/dominio/caixa'
 import type { FormaRecebimento } from '@/lib/dominio/pdv'
 import { fecharCaixaAction } from '../actions'
@@ -24,6 +25,7 @@ type Propriedades = {
 
 export function ConfirmarFechamento({ sessaoId, informado, conferencia }: Propriedades) {
   const roteador = useRouter()
+  const { solicitar, dialogo } = useAprovacaoGerente()
   const id = useId()
   const enviando = useRef(false)
   const [justificativa, definirJustificativa] = useState('')
@@ -41,33 +43,46 @@ export function ConfirmarFechamento({ sessaoId, informado, conferencia }: Propri
       definirErroJustificativa('A justificativa é obrigatória quando há diferença em qualquer forma.')
       return
     }
-    enviando.current = true
+    const entrada = {
+      sessaoId,
+      informado: { ...informado },
+      justificativa: justificativa.trim() || undefined,
+    }
+    let respostaIncerta = false
     definirErro(null)
     definirErroJustificativa(undefined)
-    iniciarTransicao(async () => {
+    async function confirmarFechamento(pinGerente?: string) {
+      if (respostaIncerta)
+        return { ok: false as const, erro: 'Consulte a situação do caixa antes de fazer outra tentativa.' }
+      enviando.current = true
       try {
-        const resposta = await fecharCaixaAction({
-          sessaoId,
-          informado,
-          justificativa: justificativa.trim() || undefined,
-        })
+        const resposta = await fecharCaixaAction({ ...entrada, pinGerente })
         if (!resposta.ok) {
-          definirErro(resposta.erro)
+          if (!resposta.precisaGerente) definirErro(resposta.erro)
           definirErroJustificativa(resposta.porCampo?.justificativa)
-          roteador.refresh()
-          return
+          if (!resposta.precisaGerente) roteador.refresh()
+          return resposta
         }
         definirFechado(true)
         roteador.replace(
           `/painel/caixa/${sessaoId}?fechamento=${resposta.fechamento.lancadoNoFinanceiro ? 'financeiro' : 'sem-financeiro'}`,
         )
+        return resposta
       } catch {
+        respostaIncerta = true
         definirIncerto(true)
-        definirErro(
-          'A conexão caiu durante o fechamento. Consulte a situação do caixa antes de fazer outra tentativa.',
-        )
+        const mensagem =
+          'A conexão caiu durante o fechamento. Consulte a situação do caixa antes de fazer outra tentativa.'
+        definirErro(mensagem)
+        return { ok: false as const, erro: mensagem }
       } finally {
         enviando.current = false
+      }
+    }
+    iniciarTransicao(async () => {
+      const resposta = await confirmarFechamento()
+      if (!resposta.ok && 'precisaGerente' in resposta && resposta.precisaGerente) {
+        solicitar((pinGerente) => confirmarFechamento(pinGerente), resposta.erro)
       }
     })
   }
@@ -169,6 +184,7 @@ export function ConfirmarFechamento({ sessaoId, informado, conferencia }: Propri
           </div>
         )}
       </form>
+      {dialogo}
     </section>
   )
 }

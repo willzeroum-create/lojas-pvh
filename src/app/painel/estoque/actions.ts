@@ -6,7 +6,7 @@
  */
 import { revalidatePath } from 'next/cache'
 import { autorDe, exigirAprovacao, exigirModulo } from '@/lib/auth/guardas'
-import { ErroDados } from '@/lib/dados/erros'
+import { ErroDados, pedeGerente } from '@/lib/dados/erros'
 import {
   aplicarInventario,
   cancelarEntrada,
@@ -32,7 +32,7 @@ import {
 } from '@/lib/validacao/estoque'
 import { uuid, validar } from '@/lib/validacao/zod'
 
-export type Resultado<T = object> = ({ ok: true } & T) | { ok: false; erro: string; porCampo?: Record<string, string> }
+export type Resultado<T = object> = ({ ok: true } & T) | { ok: false; erro: string; porCampo?: Record<string, string>; precisaGerente?: boolean }
 const mensagem = (e: unknown, padrao: string) => (e instanceof ErroDados ? e.message : padrao)
 const falha = (erros: string[], porCampo?: Record<string, string>) => ({ ok: false as const, erro: erros[0] ?? 'Dados inválidos', porCampo })
 
@@ -61,7 +61,7 @@ export async function estornarMovimentoAction(movimentoId: string, pinGerente?: 
     await exigirAprovacao(ctx, 'estornar_estoque', 'Estornou um movimento de estoque', pinGerente, r.dados)
     await estornarMovimento(ctx.supabase, ctx.tenantId, r.dados, autorDe(ctx))
   } catch (e) {
-    return { ok: false, erro: mensagem(e, 'Não foi possível estornar.') }
+    return { ok: false, erro: mensagem(e, 'Não foi possível estornar.'), precisaGerente: pedeGerente(e) }
   }
   revalidar()
   return { ok: true }

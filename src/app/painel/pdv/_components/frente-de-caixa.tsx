@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { venderAction } from '@/app/painel/caixa/actions'
+import { useAprovacaoGerente } from '@/components/ui/aprovacao-gerente'
 import type { ProdutoPdv, VendaDoCaixa, VendaRegistada } from '@/lib/dados/pdv'
 import { FORMAS_RECEBIMENTO, ROTULO_FORMA } from '@/lib/dominio/caixa'
 import { formatarBRL } from '@/lib/dominio/moeda'
@@ -58,6 +59,7 @@ export function FrenteDeCaixa({
   operador: string
 }) {
   const router = useRouter()
+  const { solicitar, dialogo } = useAprovacaoGerente()
   const buscaRef = useRef<HTMLInputElement>(null)
   const sucessoRef = useRef<HTMLHeadingElement>(null)
   const trava = useRef(false)
@@ -304,49 +306,64 @@ export function FrenteDeCaixa({
   }
   function confirmarVenda() {
     if (trava.current || !podeConfirmar || !calculo.ok || !resumo?.ok) return
-    trava.current = true
+    const entrada = {
+      itens: itens.map(({ produtoId, quantidade, desconto: descontoItem }) => ({
+        produtoId,
+        quantidade,
+        desconto: descontoItem,
+      })),
+      descontoGeral,
+      pagamentos: pagamentos.map((pagamento) => ({ ...pagamento })),
+      clienteNome: cliente.trim() || undefined,
+      observacoes: observacoes.trim() || undefined,
+    }
+    const itensRecibo = resumo.itens.map((item, indice) => ({
+      ...item,
+      vendidoPorPeso: linhas[indice]?.produto.vendidoPorPeso ?? false,
+    }))
+    let respostaIncerta = false
     definirErro('')
-    iniciar(async () => {
+    async function registrarVenda(pinGerente?: string) {
+      if (respostaIncerta)
+        return { ok: false as const, erro: 'Confira as últimas vendas antes de tentar novamente.' }
+      trava.current = true
       try {
-        const resposta = await venderAction({
-          itens: itens.map(({ produtoId, quantidade, desconto: descontoItem }) => ({
-            produtoId,
-            quantidade,
-            desconto: descontoItem,
-          })),
-          descontoGeral,
-          pagamentos,
-          clienteNome: cliente.trim() || undefined,
-          observacoes: observacoes.trim() || undefined,
-        })
+        const resposta = await venderAction({ ...entrada, pinGerente })
         if (!resposta.ok) {
-          definirErro(
-            [resposta.erro, ...Object.values(resposta.porCampo ?? {})]
-              .filter((valor, indice, valores) => valores.indexOf(valor) === indice)
-              .join(' '),
-          )
-          return
+          if (!resposta.precisaGerente)
+            definirErro(
+              [resposta.erro, ...Object.values(resposta.porCampo ?? {})]
+                .filter((valor, indice, valores) => valores.indexOf(valor) === indice)
+                .join(' '),
+            )
+          return resposta
         }
         definirRecibo({
           venda: resposta.venda,
-          itens: resumo.itens.map((item, indice) => ({
-            ...item,
-            vendidoPorPeso: linhas[indice]?.produto.vendidoPorPeso ?? false,
-          })),
-          pagamentos,
-          descontoGeral,
-          clienteNome: cliente,
+          itens: itensRecibo,
+          pagamentos: entrada.pagamentos,
+          descontoGeral: entrada.descontoGeral,
+          clienteNome: entrada.clienteNome ?? '',
           criadoEm: new Date().toISOString(),
         })
         definirPagando(false)
         router.refresh()
+        return resposta
       } catch {
+        respostaIncerta = true
         definirIncerto(true)
-        definirErro(
-          'Não foi possível confirmar a resposta. Confira as últimas vendas antes de tentar novamente para evitar uma venda duplicada.',
-        )
+        const mensagem =
+          'Não foi possível confirmar a resposta. Confira as últimas vendas antes de tentar novamente para evitar uma venda duplicada.'
+        definirErro(mensagem)
+        return { ok: false as const, erro: mensagem }
       } finally {
         trava.current = false
+      }
+    }
+    iniciar(async () => {
+      const resposta = await registrarVenda()
+      if (!resposta.ok && 'precisaGerente' in resposta && resposta.precisaGerente) {
+        solicitar((pinGerente) => registrarVenda(pinGerente), resposta.erro)
       }
     })
   }
@@ -1073,6 +1090,7 @@ export function FrenteDeCaixa({
           </form>
         </DialogoPdv>
       )}
+      {dialogo}
     </div>
   )
 }

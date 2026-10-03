@@ -15,6 +15,8 @@ const ESPERADAS = [
   ['NEXT_PUBLIC_URL_BASE', 'links absolutos'],
   ['NEXT_PUBLIC_WHATSAPP_COMERCIAL', 'botões da landing (sem ele levam ao contacto)'],
   ['PVH_SEGREDO_EQUIPE', 'opcional: assina o PIN da equipe (senão deriva da chave secreta)'],
+  ['PVH_CHAVE_SEGREDOS', 'opcional: cifra tokens fiscal/Pix (senão deriva da chave secreta)'],
+  ['PVH_SEGREDO_WEBHOOKS', 'opcional: assina as URLs de aviso Focus/Mercado Pago'],
   ['CRON_SECRET', 'resumo diário automático (Vercel Cron)'],
   ['WHATSAPP_TOKEN', 'resumo automático: API oficial do WhatsApp'],
   ['WHATSAPP_PHONE_NUMBER_ID', 'resumo automático: número que envia'],

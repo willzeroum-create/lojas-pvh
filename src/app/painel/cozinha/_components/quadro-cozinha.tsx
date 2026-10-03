@@ -14,6 +14,7 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, useTransition, type FormEvent } from 'react'
+import { useAprovacaoGerente } from '@/components/ui/aprovacao-gerente'
 import type { CartaoCozinha, Estacao, ItemCozinha } from '@/lib/dados/cozinha'
 import type { CanalPedido } from '@/lib/supabase/tipos'
 import { cancelarItemAction, mudarPreparoAction, type Resultado } from '../actions'
@@ -104,6 +105,7 @@ export function QuadroCozinha({
   cancelamentoExigePin: boolean
 }) {
   const roteador = useRouter()
+  const { solicitar, dialogo } = useAprovacaoGerente()
   const quadro = useRef<HTMLElement>(null)
   const contextoSom = useRef<AudioContext | null>(null)
   const pedidosVistos = useRef(new Set(cartoes.map((cartao) => cartao.pedidoId)))
@@ -117,7 +119,6 @@ export function QuadroCozinha({
   const [aviso, definirAviso] = useState<string | null>(null)
   const [cancelamento, definirCancelamento] = useState<{ item: ItemCozinha; rotulo: string } | null>(null)
   const [motivo, definirMotivo] = useState('')
-  const [pinGerente, definirPinGerente] = useState('')
   const [erroMotivo, definirErroMotivo] = useState<string | null>(null)
   const [pendente, iniciarTransicao] = useTransition()
   const [atualizando, iniciarAtualizacao] = useTransition()
@@ -257,29 +258,57 @@ export function QuadroCozinha({
 
   function cancelar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
-    if (!cancelamento) return
+    if (!cancelamento || enviando.current) return
     if (motivo.trim().length < 3) {
       definirErroMotivo('Escreva o motivo com pelo menos 3 caracteres.')
       return
     }
-    executar(
-      async () => {
-        try {
-          return await cancelarItemAction({
-            itemId: cancelamento.item.id,
-            motivo: motivo.trim(),
-            pinGerente: cancelamentoExigePin ? pinGerente : undefined,
-          })
-        } finally {
-          definirPinGerente('')
+    const entrada = { itemId: cancelamento.item.id, motivo: motivo.trim() }
+    let respostaIncerta = false
+    definirErro(null)
+    definirAviso(null)
+    definirErroMotivo(null)
+    async function confirmarCancelamento(pinGerente?: string) {
+      if (respostaIncerta)
+        return { ok: false as const, erro: 'Atualize a fila e confira o estado antes de tentar de novo.' }
+      enviando.current = true
+      try {
+        const resposta = await cancelarItemAction({ ...entrada, pinGerente })
+        if (!resposta.ok) {
+          if (!pinGerente && !('precisaGerente' in resposta && resposta.precisaGerente))
+            definirErro(resposta.erro)
+          definirErroMotivo(resposta.porCampo?.motivo ?? null)
+          return resposta
         }
-      },
-      'Item cancelado. O motivo ficou registrado.',
-      () => {
+        definirAviso('Item cancelado. O motivo ficou registrado.')
         definirCancelamento(null)
         definirMotivo('')
-      },
-    )
+        roteador.refresh()
+        return resposta
+      } catch {
+        respostaIncerta = true
+        const mensagem =
+          'A conexão caiu durante o cancelamento. Atualize a fila e confira o estado antes de tentar de novo.'
+        definirErro(mensagem)
+        return { ok: false as const, erro: mensagem }
+      } finally {
+        enviando.current = false
+      }
+    }
+    // O sinal calculado pelo servidor também cobre as actions que ainda não retornam precisaGerente.
+    if (cancelamentoExigePin) {
+      solicitar(
+        (pinGerente) => confirmarCancelamento(pinGerente),
+        'Um gerente precisa aprovar o cancelamento deste item.',
+      )
+      return
+    }
+    iniciarTransicao(async () => {
+      const resposta = await confirmarCancelamento()
+      if (!resposta.ok && 'precisaGerente' in resposta && resposta.precisaGerente) {
+        solicitar((pinGerente) => confirmarCancelamento(pinGerente), resposta.erro)
+      }
+    })
   }
 
   const porEstacao = new Map(estacoes.map((estacao) => [estacao.id, estacao]))
@@ -451,29 +480,7 @@ export function QuadroCozinha({
             </p>
           )}
           {cancelamentoExigePin && (
-            <div className="space-y-2">
-              <label htmlFor="cozinha-pin-gerente" className="block font-bold">
-                PIN do gerente
-              </label>
-              <p id="cozinha-pin-ajuda" className="text-sm text-areia">
-                Peça ao gerente para aprovar este cancelamento com seu PIN de 4 a 6 números.
-              </p>
-              <input
-                id="cozinha-pin-gerente"
-                type="password"
-                inputMode="numeric"
-                autoComplete="off"
-                required
-                minLength={4}
-                maxLength={6}
-                pattern="[0-9]{4,6}"
-                value={pinGerente}
-                onChange={(evento) => definirPinGerente(evento.target.value)}
-                disabled={pendente || desatualizada}
-                className="cozinha-campo max-w-xs"
-                aria-describedby="cozinha-pin-ajuda"
-              />
-            </div>
+            <p className="text-sm text-areia">O gerente será chamado para aprovar este cancelamento.</p>
           )}
           <div className="flex flex-wrap gap-2">
             <button
@@ -489,7 +496,6 @@ export function QuadroCozinha({
               disabled={pendente}
               onClick={() => {
                 definirCancelamento(null)
-                definirPinGerente('')
               }}
             >
               Manter item
@@ -657,7 +663,6 @@ export function QuadroCozinha({
                                   onClick={() => {
                                     definirCancelamento({ item, rotulo: cartao.rotulo })
                                     definirMotivo('')
-                                    definirPinGerente('')
                                     definirErroMotivo(null)
                                     definirErro(null)
                                   }}
@@ -703,6 +708,7 @@ export function QuadroCozinha({
           )
         })}
       </div>
+      {dialogo}
     </section>
   )
 }

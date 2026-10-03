@@ -85,3 +85,18 @@ describe('segredos cifrados', () => {
     vi.unstubAllEnvs()
   })
 })
+
+describe('Pix pelo Mercado Pago', () => {
+  it('estados e assinatura do aviso', async () => {
+    const { createHmac } = await import('node:crypto')
+    const { assinaturaMercadoPagoValida, estadoDoMercadoPago } = await import('@/lib/integracoes/pix/mercadopago')
+    expect(estadoDoMercadoPago('approved')).toBe('pago')
+    expect(estadoDoMercadoPago('pending')).toBe('pendente')
+    expect(estadoDoMercadoPago('refunded')).toBe('devolvido')
+    const segredo = 'chave-do-webhook'
+    const v1 = createHmac('sha256', segredo).update('id:12345;request-id:req-1;ts:1700000000;').digest('hex')
+    expect(assinaturaMercadoPagoValida(segredo, { dataId: '12345', requestId: 'req-1', cabecalhoAssinatura: `ts=1700000000,v1=${v1}` })).toBe(true)
+    expect(assinaturaMercadoPagoValida(segredo, { dataId: '99999', requestId: 'req-1', cabecalhoAssinatura: `ts=1700000000,v1=${v1}` })).toBe(false)
+    expect(assinaturaMercadoPagoValida(segredo, { dataId: '12345', requestId: 'req-1', cabecalhoAssinatura: null })).toBe(false)
+  })
+})

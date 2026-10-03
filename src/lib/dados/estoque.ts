@@ -4,9 +4,8 @@ import { custoFicha, margem, type CustoProduto, type Margem } from '@/lib/domini
 import { fatorSugerido, lerNotaCompra, ErroNfe } from '@/lib/dominio/nfe'
 import { normalizarDocumento } from '@/lib/dominio/documento'
 import type { Cliente } from '@/lib/supabase/server'
-import type { EstoqueEntradaItemLinha, EstoqueEntradaLinha, EstoqueMovimentoLinha, UnidadeEstoque } from '@/lib/supabase/tipos'
+import type { Json, EstoqueEntradaItemLinha, EstoqueEntradaLinha, EstoqueMovimentoLinha, UnidadeEstoque } from '@/lib/supabase/tipos'
 import { ErroDados, garantir, ouErro } from './erros'
-import { criarTitulo } from './financeiro'
 import { modulosAtivos } from './modulos'
 
 const mensagemBase = (m: string) => m.charAt(0).toUpperCase() + m.slice(1) + '.'
@@ -316,8 +315,9 @@ export async function ligarItemEntrada(
 }
 
 /**
- * Conclui a entrada: saldos e custo médio na base; com o financeiro ligado,
- * as duplicatas da nota viram contas a pagar (categoria de mercadorias).
+ * Conclui a entrada numa só transacção: saldos e custo médio e, com o
+ * financeiro ligado, a nota vira uma conta a pagar (categoria de mercadorias)
+ * com uma parcela por duplicata.
  */
 export async function concluirEntrada(
   supabase: Cliente,
@@ -325,15 +325,9 @@ export async function concluirEntrada(
   entradaId: string,
   autor: string,
 ): Promise<{ itens: number; contasCriadas: number }> {
-  const r = await supabase.rpc('concluir_entrada_estoque', { p_tenant: tenantId, p_entrada: entradaId, p_autor: autor })
-  if (r.error?.code === '23514' || r.error?.code === 'P0002') throw new ErroDados(mensagemBase(r.error.message))
-  const itens = ouErro(r, 'Não foi possível concluir a entrada')
-
-  let contasCriadas = 0
+  let categoriaId: string | null = null
   if ((await modulosAtivos(supabase, tenantId)).has('financeiro')) {
-    const entrada = await obterEntrada(supabase, tenantId, entradaId)
-    const duplicatas = (Array.isArray(entrada?.duplicatas) ? entrada.duplicatas : []) as Array<{ numero: string; vencimento: string; valor: number }>
-    const { data: categoria } = await supabase
+    const { data } = await supabase
       .from('categorias_financeiras')
       .select('id')
       .eq('tenant_id', tenantId)
@@ -341,27 +335,12 @@ export async function concluirEntrada(
       .eq('linha', 'custo_mercadoria')
       .limit(1)
       .maybeSingle()
-    if (entrada && categoria) {
-      const hoje = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Porto_Velho' })
-      for (const d of duplicatas.filter((x) => x.valor > 0 && /^\d{4}-\d{2}-\d{2}$/.test(x.vencimento))) {
-        await criarTitulo(supabase, tenantId, {
-          tipo: 'pagar',
-          descricao: `NF ${entrada.numero_nota ?? ''} · ${entrada.fornecedor_nome ?? 'Fornecedor'} · ${d.numero}`.slice(0, 120),
-          pessoaId: entrada.fornecedor_id ?? undefined,
-          categoriaId: categoria.id,
-          valor: d.valor,
-          parcelas: 1,
-          primeiroVencimento: d.vencimento,
-          competencia: entrada.emitida_em ?? hoje,
-          documento: entrada.numero_nota ?? undefined,
-          origem: 'compra',
-          origemId: undefined,
-        })
-        contasCriadas++
-      }
-    }
+    categoriaId = data?.id ?? null
   }
-  return { itens, contasCriadas }
+  const r = await supabase.rpc('concluir_entrada', { p_tenant: tenantId, p_entrada: entradaId, p_autor: autor, p_categoria: categoriaId })
+  if (r.error?.code === '23514' || r.error?.code === 'P0002') throw new ErroDados(mensagemBase(r.error.message))
+  const res = ouErro(r, 'Não foi possível concluir a entrada') as { itens: number; parcelas: number }
+  return { itens: res.itens, contasCriadas: res.parcelas }
 }
 
 export async function cancelarEntrada(supabase: Cliente, tenantId: string, entradaId: string): Promise<void> {
@@ -457,12 +436,13 @@ export async function salvarFicha(
   produtoId: string,
   linhas: Array<{ insumoId: string; quantidade: number }>,
 ): Promise<void> {
-  garantir(await supabase.from('fichas').delete().eq('tenant_id', tenantId).eq('produto_id', produtoId), 'Não foi possível actualizar a ficha')
-  if (linhas.length === 0) return
-  garantir(
-    await supabase.from('fichas').insert(linhas.map((l) => ({ tenant_id: tenantId, produto_id: produtoId, insumo_id: l.insumoId, quantidade: l.quantidade }))),
-    'Não foi possível guardar a ficha',
-  )
+  const r = await supabase.rpc('salvar_ficha', {
+    p_tenant: tenantId,
+    p_produto: produtoId,
+    p_linhas: linhas.map((l) => ({ insumo_id: l.insumoId, quantidade: l.quantidade })) as Json,
+  })
+  if (r.error?.code === '23505') throw new ErroDados('O mesmo insumo aparece duas vezes na ficha.')
+  ouErro(r, 'Não foi possível guardar a ficha')
 }
 
 /** CMV de todos os produtos com ficha, para a lista "o que dá mais lucro". */

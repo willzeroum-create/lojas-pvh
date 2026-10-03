@@ -181,11 +181,11 @@ export const MODULOS = [
   {
     id: 'bancos',
     nome: 'Bancos e Pix',
-    descricao: 'Extrato no sistema, Pix com baixa automática e conciliação.',
+    descricao: 'Pix com QR na tela e baixa automática: no PDV, na mesa e nas contas a receber.',
     grupo: 'financeiro',
-    maturidade: 'planejado',
+    maturidade: 'pre_funcional',
     requer: ['financeiro'],
-    ativacao: 'Conta num banco com API Pix e webhook (credenciais do cliente).',
+    ativacao: 'Conta Mercado Pago da empresa (Pix por QR sem tarifa): token de acesso e chave do webhook.',
   },
   {
     id: 'cobranca',

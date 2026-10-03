@@ -139,3 +139,57 @@ describe('estorno e inventário', () => {
     expect(r!.ajustes).toBe(1)
   })
 })
+
+describe('operações numa só transacção', () => {
+  it('concluir_entrada lança a nota como uma conta a pagar com uma parcela por duplicata', async () => {
+    await bd.consultar(srv, 'select public.financeiro_padrao($1)', [tenant])
+    const [cat] = await bd.consultar<{ id: string }>(srv, `select id from public.categorias_financeiras where tenant_id = $1 and tipo = 'pagar' and linha = 'custo_mercadoria' limit 1`, [tenant])
+    const e = await entradaManual([{ insumo_id: insumo, quantidade: 2, total: 60 }])
+    await bd.consultar(srv, `update public.estoque_entradas set duplicatas = $2::jsonb where id = $1`, [
+      e,
+      JSON.stringify([
+        { numero: '002', vencimento: '2026-12-10', valor: 30 },
+        { numero: '001', vencimento: '2026-11-10', valor: 30 },
+        { numero: 'x', vencimento: 'sem data', valor: 5 },
+      ]),
+    ])
+    const [r] = await bd.consultar<{ r: { itens: number; parcelas: number } }>(como(), 'select public.concluir_entrada($1, $2, $3, $4) r', [tenant, e, 'Ana', cat!.id])
+    expect(r!.r).toMatchObject({ itens: 1, parcelas: 2 })
+    const parcelas = await bd.consultar<{ numero: number; vencimento: string; valor: string }>(
+      srv,
+      `select p.numero, p.vencimento::text, p.valor::text from public.parcelas p join public.titulos t on t.id = p.titulo_id where t.origem = 'compra' and t.origem_id = $1 order by p.numero`,
+      [e],
+    )
+    expect(parcelas).toEqual([
+      { numero: 1, vencimento: '2026-11-10', valor: '30.00' },
+      { numero: 2, vencimento: '2026-12-10', valor: '30.00' },
+    ])
+  })
+
+  it('se o lançamento falha, a entrada não fica concluída', async () => {
+    const e = await entradaManual([{ insumo_id: insumo, quantidade: 1, total: 10 }])
+    await bd.consultar(srv, `update public.estoque_entradas set duplicatas = '[{"numero":"1","vencimento":"2026-11-10","valor":10}]' where id = $1`, [e])
+    const antes = await saldoInsumo()
+    await expect(
+      bd.consultar(como(), 'select public.concluir_entrada($1, $2, $3, $4)', [tenant, e, 'Ana', '00000000-0000-0000-0000-000000000000']),
+    ).rejects.toThrow()
+    const [est] = await bd.consultar<{ estado: string }>(srv, 'select estado from public.estoque_entradas where id = $1', [e])
+    expect(est!.estado).toBe('pendente')
+    expect(await saldoInsumo()).toEqual(antes)
+  })
+
+  it('salvar_ficha troca a ficha inteira ou nada', async () => {
+    const [p] = await bd.consultar<{ id: string }>(srv, `select id from public.produtos where nome = 'X-Burger'`)
+    const [n] = await bd.consultar<{ n: number }>(como(), 'select public.salvar_ficha($1, $2, $3::jsonb) n', [
+      tenant,
+      p!.id,
+      JSON.stringify([{ insumo_id: insumo, quantidade: 0.2 }]),
+    ])
+    expect(n!.n).toBe(1)
+    await expect(
+      bd.consultar(como(), 'select public.salvar_ficha($1, $2, $3::jsonb)', [tenant, p!.id, JSON.stringify([{ insumo_id: insumo, quantidade: 0 }])]),
+    ).rejects.toThrow()
+    const ficha = await bd.consultar<{ q: string }>(srv, 'select quantidade::text q from public.fichas where produto_id = $1', [p!.id])
+    expect(ficha).toEqual([{ q: '0.200' }])
+  })
+})

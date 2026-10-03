@@ -17,6 +17,11 @@ function lancar(erro: PostgrestError, contexto: string): never {
 }
 
 /** Leituras: lança um `ErroDados` legível se a resposta trouxer erro e garante dados não nulos. */
+/** Falta (ou está errado) o PIN de um gerente: a interface abre o teclado de aprovação. */
+export class ErroAprovacao extends ErroDados {}
+
+export const pedeGerente = (e: unknown): boolean => e instanceof ErroAprovacao
+
 export function ouErro<T>(
   resposta: { data: T; error: PostgrestError | null },
   contexto: string,

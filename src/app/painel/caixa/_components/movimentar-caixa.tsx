@@ -3,11 +3,13 @@
 import { ArrowDownLeft, ArrowUpRight, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useId, useRef, useState, useTransition, type FormEvent } from 'react'
+import { useAprovacaoGerente } from '@/components/ui/aprovacao-gerente'
 import { movimentarCaixaAction } from '../actions'
 import { AvisoCaixa, BOTAO_CAIXA, CAMPO_CAIXA, lerValorCaixa, PRIMARIO_CAIXA } from './apresentacao'
 
 export function MovimentarCaixa({ sessaoId }: { sessaoId: string }) {
   const roteador = useRouter()
+  const { solicitar, dialogo } = useAprovacaoGerente()
   const id = useId()
   const enviando = useRef(false)
   const [tipo, definirTipo] = useState<'suprimento' | 'sangria' | null>(null)
@@ -42,24 +44,23 @@ export function MovimentarCaixa({ sessaoId }: { sessaoId: string }) {
       definirErros({ motivo: 'O motivo precisa ter pelo menos 3 caracteres.' })
       return
     }
-    enviando.current = true
+    const entrada = { sessaoId, tipo, valor: quantia, motivo: motivo.trim() }
+    let respostaIncerta = false
     definirErro(null)
     definirErros({})
-    iniciarTransicao(async () => {
+    async function registrarMovimento(pinGerente?: string) {
+      if (respostaIncerta)
+        return { ok: false as const, erro: 'Atualize e confira os movimentos antes de tentar de novo.' }
+      enviando.current = true
       try {
-        const resposta = await movimentarCaixaAction({
-          sessaoId,
-          tipo,
-          valor: quantia,
-          motivo: motivo.trim(),
-        })
+        const resposta = await movimentarCaixaAction({ ...entrada, pinGerente })
         if (!resposta.ok) {
-          definirErro(resposta.erro)
+          if (!resposta.precisaGerente) definirErro(resposta.erro)
           definirErros(resposta.porCampo ?? {})
-          return
+          return resposta
         }
         definirSucesso(
-          tipo === 'suprimento'
+          entrada.tipo === 'suprimento'
             ? 'Suprimento registrado. O dinheiro entrou no caixa.'
             : 'Sangria registrada. A retirada foi anotada.',
         )
@@ -67,13 +68,22 @@ export function MovimentarCaixa({ sessaoId }: { sessaoId: string }) {
         definirValor('')
         definirMotivo('')
         roteador.refresh()
+        return resposta
       } catch {
+        respostaIncerta = true
         definirIncerto(true)
-        definirErro(
-          'A conexão caiu durante o registro. Atualize e confira os movimentos antes de tentar de novo.',
-        )
+        const mensagem =
+          'A conexão caiu durante o registro. Atualize e confira os movimentos antes de tentar de novo.'
+        definirErro(mensagem)
+        return { ok: false as const, erro: mensagem }
       } finally {
         enviando.current = false
+      }
+    }
+    iniciarTransicao(async () => {
+      const resposta = await registrarMovimento()
+      if (!resposta.ok && 'precisaGerente' in resposta && resposta.precisaGerente) {
+        solicitar((pinGerente) => registrarMovimento(pinGerente), resposta.erro)
       }
     })
   }
@@ -209,6 +219,7 @@ export function MovimentarCaixa({ sessaoId }: { sessaoId: string }) {
           )}
         </form>
       )}
+      {dialogo}
     </section>
   )
 }

@@ -14,7 +14,7 @@ import {
   transferirMesa,
 } from '@/lib/dados/comandas'
 import { cancelarItem } from '@/lib/dados/cozinha'
-import { ErroDados } from '@/lib/dados/erros'
+import { ErroDados, pedeGerente } from '@/lib/dados/erros'
 import { obterLojaPrincipal } from '@/lib/dados/lojas'
 import {
   esquemaAbrirComanda,
@@ -25,7 +25,7 @@ import {
 } from '@/lib/validacao/comandas'
 import { uuid, validar, z } from '@/lib/validacao/zod'
 
-export type Resultado<T = object> = ({ ok: true } & T) | { ok: false; erro: string; porCampo?: Record<string, string> }
+export type Resultado<T = object> = ({ ok: true } & T) | { ok: false; erro: string; porCampo?: Record<string, string>; precisaGerente?: boolean }
 const mensagem = (e: unknown, padrao: string) => (e instanceof ErroDados ? e.message : padrao)
 
 function revalidar(comandaId?: string) {
@@ -102,7 +102,7 @@ export async function cancelarItemComandaAction(comandaId: string, entrada: unkn
     await exigirAprovacao(ctx, 'cancelar_item', `Cancelou um item da comanda: ${r.dados.motivo}`, r.dados.pinGerente || undefined, r.dados.itemId)
     await cancelarItem(ctx.supabase, ctx.tenantId, r.dados.itemId, r.dados.motivo)
   } catch (e) {
-    return { ok: false, erro: mensagem(e, 'Não foi possível cancelar o item.') }
+    return { ok: false, erro: mensagem(e, 'Não foi possível cancelar o item.'), precisaGerente: pedeGerente(e) }
   }
   revalidar(comandaId)
   return { ok: true }

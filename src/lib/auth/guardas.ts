@@ -13,7 +13,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { cache } from 'react'
 import { aprovarComPinGerente, obterMembro, registarAuditoria } from '@/lib/dados/equipe'
-import { ErroDados } from '@/lib/dados/erros'
+import { ErroAprovacao } from '@/lib/dados/erros'
 import { modulosAtivos } from '@/lib/dados/modulos'
 import { ACOES_SENSIVEIS, papelAbreModulo, papelFazSemAprovacao, type AcaoSensivel, type Papel } from '@/lib/equipe/papeis'
 import { lerSessaoEquipe } from '@/lib/equipe/pin'
@@ -120,7 +120,7 @@ export async function exigirAprovacao(
 ): Promise<{ aprovadoPor: string | null }> {
   let aprovadoPor: string | null = null
   if (ctx.equipe && !papelFazSemAprovacao(ctx.equipe.papel, acao)) {
-    if (!pinGerente) throw new ErroDados(`${ACOES_SENSIVEIS[acao]} precisa do PIN de um gerente.`)
+    if (!pinGerente) throw new ErroAprovacao(`${ACOES_SENSIVEIS[acao]} precisa do PIN de um gerente.`)
     aprovadoPor = await aprovarComPinGerente(ctx.tenantId, pinGerente)
   }
   await registarAuditoria(ctx.supabase, ctx.tenantId, {
