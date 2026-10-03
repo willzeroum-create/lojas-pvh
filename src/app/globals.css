@@ -189,3 +189,42 @@
     scroll-behavior: auto;
   }
 }
+
+/* Cadastros do painel: leitura de balcão, foco e movimento reduzido. */
+.clientes-area {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.clientes-area :is(h1, h2, h3) {
+  font-family: var(--font-sans);
+}
+
+.clientes-area :is(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-tinta);
+  outline-offset: 3px;
+}
+
+.clientes-area :is(input, select, textarea) {
+  scroll-margin-block: 6rem;
+}
+
+.clientes-area input::placeholder,
+.clientes-area textarea::placeholder {
+  color: var(--color-carvao);
+  opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.clientes-area) {
+    scroll-behavior: auto;
+  }
+
+  .clientes-area *,
+  .clientes-area *::before,
+  .clientes-area *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

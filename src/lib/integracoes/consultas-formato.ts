@@ -2,7 +2,7 @@
  * Formato das consultas de CNPJ e CEP e a tradução das respostas dos serviços
  * públicos para ele. Puro: testável sem rede (ver consultas.ts).
  */
-import { lerCep } from '@/lib/dominio/documento'
+import { lerCep, normalizarDocumento } from '@/lib/dominio/documento'
 import { apenasDigitos } from '@/lib/dominio/telefone'
 
 export type EnderecoConsultado = {
@@ -33,7 +33,7 @@ export function mapearCnpjBrasilApi(dados: Record<string, unknown>): EmpresaCons
   const cep = lerCep(String(dados.cep ?? ''))
   const telefone = apenasDigitos(String(dados.ddd_telefone_1 ?? ''))
   return {
-    cnpj: apenasDigitos(String(dados.cnpj ?? '')),
+    cnpj: normalizarDocumento(String(dados.cnpj ?? '')),
     razaoSocial: textoOuNulo(dados.razao_social) ?? '',
     nomeFantasia: textoOuNulo(dados.nome_fantasia),
     situacao: textoOuNulo(dados.descricao_situacao_cadastral),

@@ -1,3 +1,4 @@
+import { cnpjValido, normalizarDocumento } from '@/lib/dominio/documento'
 import { slugValido } from '@/lib/dominio/slug'
 import { corHex, esquemaEndereco, whatsapp } from './comum'
 import { z } from './zod'
@@ -8,11 +9,12 @@ export const slug = z
   .toLowerCase()
   .refine(slugValido, 'Use só letras minúsculas, números e hífens (3 a 50), e não um nome reservado')
 
+/** CNPJ numérico ou alfanumérico (julho de 2026), com dígitos verificadores conferidos. */
 const cnpj = z
   .string()
   .trim()
-  .transform((s) => s.replace(/\D/g, ''))
-  .refine((s) => s.length === 14, 'CNPJ deve ter 14 dígitos')
+  .transform((s) => normalizarDocumento(s))
+  .refine((s) => cnpjValido(s), 'CNPJ inválido')
 
 /** Criação de tenant no console: dados do comerciante e do dono que vai entrar no painel. */
 export const esquemaNovoTenant = z.object({

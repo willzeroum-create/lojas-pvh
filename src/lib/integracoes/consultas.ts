@@ -10,8 +10,7 @@ import 'server-only'
  * Gratuitas e sem chave. Cada chamada tem prazo curto: se o serviço falhar, o
  * formulário continua a funcionar à mão.
  */
-import { lerCep } from '@/lib/dominio/documento'
-import { apenasDigitos } from '@/lib/dominio/telefone'
+import { lerCep, normalizarDocumento } from '@/lib/dominio/documento'
 import { mapearCep, mapearCnpjBrasilApi, type EmpresaConsultada, type EnderecoConsultado } from './consultas-formato'
 
 export type { EmpresaConsultada, EnderecoConsultado }
@@ -29,7 +28,7 @@ async function obterJson(url: string): Promise<Record<string, unknown> | null> {
 }
 
 export async function consultarCnpj(cnpj: string): Promise<EmpresaConsultada | null> {
-  const dados = await obterJson(`https://brasilapi.com.br/api/cnpj/v1/${apenasDigitos(cnpj)}`)
+  const dados = await obterJson(`https://brasilapi.com.br/api/cnpj/v1/${normalizarDocumento(cnpj)}`)
   return dados ? mapearCnpjBrasilApi(dados) : null
 }
 

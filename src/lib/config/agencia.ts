@@ -132,7 +132,7 @@ export const AGENCIA = {
     compra: {
       nome: 'Compra única',
       preco: 'a partir de R$ 15 mil',
-      texto: 'O sistema completo, sem mensalidade. Se paga em menos de dois anos.',
+      texto: 'O sistema completo, sem mensalidade. Custos de terceiros (nota fiscal, WhatsApp) à parte.',
     },
     semPreco: 'O valor depende dos módulos. Na visita a gente monta e você vê o preço antes de fechar.',
   },

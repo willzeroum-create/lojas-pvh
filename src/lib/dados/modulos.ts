@@ -54,6 +54,11 @@ export async function definirModulo(
     ),
     'Não foi possível guardar o módulo',
   )
+
+  // Módulos que precisam de dados de partida ao serem ligados.
+  if (ativo && modulo === 'financeiro') {
+    garantir(await supabase.rpc('financeiro_padrao', { p_tenant: tenantId }), 'Não foi possível preparar o financeiro')
+  }
 }
 
 /** Empresa nova: liga os módulos por defeito do catálogo. */

@@ -32,7 +32,7 @@ export type GrupoModulo = keyof typeof GRUPOS_MODULO
 export type Maturidade = 'funcional' | 'pre_funcional' | 'planejado'
 
 /** Ícones dos separadores do painel; o componente de navegação traduz o nome. */
-export type IconeModulo = 'pedidos' | 'cardapio' | 'clientes' | 'loja' | 'resumo' | 'conta'
+export type IconeModulo = 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
 
 export type ModuloModelo = {
   id: string
@@ -168,9 +168,10 @@ export const MODULOS = [
   {
     id: 'financeiro',
     nome: 'Financeiro',
-    descricao: 'Contas a pagar e a receber, plano de contas e fluxo de caixa.',
+    descricao: 'Contas a pagar e a receber em parcelas, carteiras, fluxo de caixa e resultado do mês.',
     grupo: 'financeiro',
-    maturidade: 'planejado',
+    maturidade: 'funcional',
+    painel: { href: '/painel/financeiro', rotulo: 'Financeiro', icone: 'financeiro', ordem: 35 },
   },
   {
     id: 'bancos',

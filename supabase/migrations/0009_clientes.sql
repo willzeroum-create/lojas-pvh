@@ -8,7 +8,8 @@
 -- Regras:
 --   • WhatsApp guardado só com dígitos e DDI; único por tenant entre pessoas
 --     não anonimizadas (é a chave do cliente que chega pelo cardápio).
---   • CPF ou CNPJ só com dígitos, único por tenant quando informado.
+--   • CPF ou CNPJ (numérico ou alfanumérico) sem máscara, único por tenant
+--     quando informado.
 --   • LGPD: o comerciante é o controlador. O consentimento fica registado com
 --     finalidade e data; anonimizar apaga os dados pessoais e mantém os
 --     valores dos pedidos.
@@ -22,7 +23,7 @@ create table public.pessoas (
   tipo            public.tipo_pessoa not null default 'pf',
   nome            text not null check (length(nome) between 1 and 120),
   nome_fantasia   text check (nome_fantasia is null or length(nome_fantasia) <= 120),
-  documento       text check (documento is null or documento ~ '^([0-9]{11}|[0-9]{14})$'),
+  documento       text check (documento is null or documento ~ '^([0-9]{11}|[0-9A-Z]{12}[0-9]{2})$'),
   whatsapp        text check (whatsapp is null or whatsapp ~ '^[0-9]{12,13}$'),
   email           text check (email is null or email ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
   nascimento      date,
@@ -40,7 +41,7 @@ create table public.pessoas (
 );
 comment on table public.pessoas is 'Cadastro único de clientes e fornecedores do tenant.';
 comment on column public.pessoas.whatsapp is 'Só dígitos com DDI. Chave do cliente que chega pelo cardápio.';
-comment on column public.pessoas.documento is 'CPF (11) ou CNPJ (14), só dígitos, validado na aplicação.';
+comment on column public.pessoas.documento is 'CPF (11 dígitos) ou CNPJ (14, numérico ou alfanumérico), sem máscara, validado na aplicação.';
 
 create unique index pessoas_whatsapp_unico
   on public.pessoas (tenant_id, whatsapp)

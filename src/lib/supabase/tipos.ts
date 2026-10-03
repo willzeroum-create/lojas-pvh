@@ -296,6 +296,82 @@ export type ConsentimentoLinha = {
   registado_em: string
 }
 
+export type TipoTitulo = 'receber' | 'pagar'
+export type EstadoParcela = 'aberta' | 'parcial' | 'paga' | 'cancelada'
+export type TipoCarteira = 'caixa' | 'banco' | 'pix' | 'cartao' | 'outra'
+export type LinhaResultado =
+  | 'receita_vendas'
+  | 'outras_receitas'
+  | 'impostos'
+  | 'custo_mercadoria'
+  | 'despesa_variavel'
+  | 'pessoal'
+  | 'despesa_fixa'
+  | 'outras_despesas'
+
+export type CarteiraLinha = {
+  id: string
+  tenant_id: string
+  nome: string
+  tipo: TipoCarteira
+  saldo_inicial: number
+  ativa: boolean
+  criado_em: string
+}
+
+export type CategoriaFinanceiraLinha = {
+  id: string
+  tenant_id: string
+  nome: string
+  tipo: TipoTitulo
+  linha: LinhaResultado
+  ativa: boolean
+}
+
+export type TituloLinha = {
+  id: string
+  tenant_id: string
+  tipo: TipoTitulo
+  descricao: string
+  pessoa_id: string | null
+  categoria_id: string
+  origem: 'manual' | 'pedido' | 'compra' | 'recorrente'
+  origem_id: string | null
+  competencia: string
+  documento: string | null
+  observacoes: string | null
+  cancelado_em: string | null
+  criado_em: string
+}
+
+export type ParcelaLinha = {
+  id: string
+  tenant_id: string
+  titulo_id: string
+  numero: number
+  vencimento: string
+  valor: number
+  valor_pago: number
+  estado: EstadoParcela
+  pago_em: string | null
+}
+
+export type BaixaLinha = {
+  id: string
+  tenant_id: string
+  parcela_id: string
+  carteira_id: string
+  data: string
+  valor: number
+  juros: number
+  multa: number
+  desconto: number
+  forma: 'dinheiro' | 'pix' | 'cartao_debito' | 'cartao_credito' | 'boleto' | 'transferencia' | 'outro'
+  observacao: string | null
+  estornada_em: string | null
+  criado_em: string
+}
+
 export type TenantModuloLinha = {
   tenant_id: string
   modulo: string
@@ -684,6 +760,85 @@ export type Database = {
           },
         ]
       >
+      carteiras: Tabela<
+        CarteiraLinha,
+        'id' | 'saldo_inicial' | 'ativa' | 'criado_em',
+        [
+          {
+            foreignKeyName: 'carteiras_tenant_id_fkey'
+            columns: ['tenant_id']
+            isOneToOne: false
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
+          },
+        ]
+      >
+      categorias_financeiras: Tabela<
+        CategoriaFinanceiraLinha,
+        'id' | 'ativa',
+        [
+          {
+            foreignKeyName: 'categorias_financeiras_tenant_id_fkey'
+            columns: ['tenant_id']
+            isOneToOne: false
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
+          },
+        ]
+      >
+      titulos: Tabela<
+        TituloLinha,
+        'id' | 'pessoa_id' | 'origem' | 'origem_id' | 'documento' | 'observacoes' | 'cancelado_em' | 'criado_em',
+        [
+          {
+            foreignKeyName: 'titulos_pessoa_id_tenant_id_fkey'
+            columns: ['pessoa_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'pessoas'
+            referencedColumns: ['id', 'tenant_id']
+          },
+          {
+            foreignKeyName: 'titulos_categoria_id_tenant_id_fkey'
+            columns: ['categoria_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'categorias_financeiras'
+            referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
+      parcelas: Tabela<
+        ParcelaLinha,
+        'id' | 'valor_pago' | 'estado' | 'pago_em',
+        [
+          {
+            foreignKeyName: 'parcelas_titulo_id_tenant_id_fkey'
+            columns: ['titulo_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'titulos'
+            referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
+      baixas: Tabela<
+        BaixaLinha,
+        'id' | 'juros' | 'multa' | 'desconto' | 'forma' | 'observacao' | 'estornada_em' | 'criado_em',
+        [
+          {
+            foreignKeyName: 'baixas_parcela_id_tenant_id_fkey'
+            columns: ['parcela_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'parcelas'
+            referencedColumns: ['id', 'tenant_id']
+          },
+          {
+            foreignKeyName: 'baixas_carteira_id_tenant_id_fkey'
+            columns: ['carteira_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'carteiras'
+            referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
       tenant_modulos: Tabela<
         TenantModuloLinha,
         'ativo' | 'configuracao' | 'ativado_em' | 'criado_em' | 'atualizado_em',
@@ -703,6 +858,7 @@ export type Database = {
       criar_pedido: { Args: { p: Json }; Returns: PedidoLinha }
       anonimizar_pedidos: { Args: { dias: number }; Returns: number }
       anonimizar_pessoa: { Args: { p_tenant: string; p_pessoa: string }; Returns: undefined }
+      financeiro_padrao: { Args: { p_tenant: string }; Returns: undefined }
     }
     Enums: {
       tenant_status: TenantStatus
@@ -713,6 +869,10 @@ export type Database = {
       forma_pagamento: FormaPagamento
       cadeia_estado: CadeiaEstado
       tipo_pessoa: TipoPessoa
+      tipo_titulo: TipoTitulo
+      estado_parcela: EstadoParcela
+      tipo_carteira: TipoCarteira
+      linha_resultado: LinhaResultado
     }
     CompositeTypes: { [_ in never]: never }
   }
