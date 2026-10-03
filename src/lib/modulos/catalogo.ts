@@ -32,7 +32,7 @@ export type GrupoModulo = keyof typeof GRUPOS_MODULO
 export type Maturidade = 'funcional' | 'pre_funcional' | 'planejado'
 
 /** Ícones dos separadores do painel; o componente de navegação traduz o nome. */
-export type IconeModulo = 'fiscal' | 'equipe' | 'estoque' | 'pdv' | 'caixa' | 'comandas' | 'cozinha' | 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
+export type IconeModulo = 'fiscal' | 'pix' | 'equipe' | 'estoque' | 'pdv' | 'caixa' | 'comandas' | 'cozinha' | 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
 
 export type ModuloModelo = {
   id: string
@@ -186,6 +186,7 @@ export const MODULOS = [
     maturidade: 'pre_funcional',
     requer: ['financeiro'],
     ativacao: 'Conta Mercado Pago da empresa (Pix por QR sem tarifa): token de acesso e chave do webhook.',
+    painel: { href: '/painel/pix', rotulo: 'Pix', icone: 'pix', ordem: 47 },
   },
   {
     id: 'cobranca',

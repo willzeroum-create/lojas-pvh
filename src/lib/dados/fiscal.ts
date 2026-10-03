@@ -2,7 +2,9 @@ import 'server-only'
 
 import { montarNfceFocus, pendenciasNfce, type ConfigFiscal, type ItemFiscal, type PagamentoFiscal } from '@/lib/dominio/fiscal'
 import { focusNfe, type AmbienteFiscal, type RespostaEmissor } from '@/lib/integracoes/fiscal/focus'
+import { assinarWebhook } from '@/lib/integracoes/assinatura-webhook'
 import { guardarSegredo, lerSegredo } from '@/lib/integracoes/segredos'
+import { urlBase } from '@/lib/config/marca'
 import type { Cliente } from '@/lib/supabase/server'
 import type { Json } from '@/lib/supabase/tipos'
 import { ErroDados, garantir, ouErro } from './erros'
@@ -198,4 +200,88 @@ export async function listarDocumentosFiscais(supabase: Cliente, tenantId: strin
     await supabase.from('documentos_fiscais').select('*').eq('tenant_id', tenantId).order('criado_em', { ascending: false }).limit(limite),
     'Não foi possível ler as notas',
   )
+}
+
+/** URL de aviso da Focus para este cliente (assinada por nós), a colar no painel da Focus. */
+export function urlAvisoFiscal(tenantId: string): string {
+  return `${urlBase()}/api/webhooks/focus?tenant=${tenantId}&assinatura=${assinarWebhook('focus', tenantId)}`
+}
+
+export type ProdutoFiscal = {
+  id: string
+  nome: string
+  categoria: string | null
+  ncm: string | null
+  cfop: string
+  csosn: string
+  origem: number
+  cest: string | null
+}
+
+/** Produtos com os dados fiscais; os sem NCM primeiro (bloqueiam a nota). */
+export async function produtosFiscais(supabase: Cliente, tenantId: string): Promise<ProdutoFiscal[]> {
+  const linhas = ouErro(
+    await supabase
+      .from('produtos')
+      .select('id, nome, ncm, cfop, csosn, origem_mercadoria, cest, categorias(nome)')
+      .eq('tenant_id', tenantId)
+      .order('nome'),
+    'Não foi possível ler os produtos',
+  )
+  return linhas
+    .map((p) => ({
+      id: p.id,
+      nome: p.nome,
+      categoria: (p.categorias as unknown as { nome: string } | null)?.nome ?? null,
+      ncm: p.ncm,
+      cfop: p.cfop,
+      csosn: p.csosn,
+      origem: p.origem_mercadoria,
+      cest: p.cest,
+    }))
+    .sort((a, b) => Number(!!a.ncm) - Number(!!b.ncm))
+}
+
+export async function salvarFiscalProduto(
+  supabase: Cliente,
+  tenantId: string,
+  produtoId: string,
+  d: { ncm: string | null; cfop: string; csosn: string; origem: number; cest: string | null },
+): Promise<void> {
+  garantir(
+    await supabase
+      .from('produtos')
+      .update({ ncm: d.ncm, cfop: d.cfop, csosn: d.csosn, origem_mercadoria: d.origem, cest: d.cest })
+      .eq('tenant_id', tenantId)
+      .eq('id', produtoId),
+    'Não foi possível guardar os dados fiscais',
+  )
+}
+
+export type VendaSemNota = { id: string; numero: number | null; canal: string; total: number; clienteNome: string | null; criadoEm: string }
+
+/** Vendas concluídas dos últimos dias que ainda não têm NFC-e válida. */
+export async function vendasSemNota(supabase: Cliente, tenantId: string, dias = 7): Promise<VendaSemNota[]> {
+  const desde = new Date(Date.now() - dias * 86_400_000).toISOString()
+  const [vendas, notas] = await Promise.all([
+    supabase
+      .from('pedidos')
+      .select('id, numero, canal, total, cliente_nome, criado_em')
+      .eq('tenant_id', tenantId)
+      .eq('status', 'concluido')
+      .gte('criado_em', desde)
+      .order('criado_em', { ascending: false })
+      .limit(200),
+    supabase
+      .from('documentos_fiscais')
+      .select('pedido_id')
+      .eq('tenant_id', tenantId)
+      .eq('tipo', 'nfce')
+      .neq('estado', 'cancelado')
+      .gte('criado_em', desde),
+  ])
+  const comNota = new Set(ouErro(notas, 'Não foi possível ler as notas').map((n) => n.pedido_id))
+  return ouErro(vendas, 'Não foi possível ler as vendas')
+    .filter((v) => !comNota.has(v.id))
+    .map((v) => ({ id: v.id, numero: v.numero, canal: v.canal, total: Number(v.total), clienteNome: v.cliente_nome, criadoEm: v.criado_em }))
 }

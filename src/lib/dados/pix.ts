@@ -210,3 +210,32 @@ export async function cancelarCobrancaPix(supabase: Cliente, tenantId: string, i
   if (token && c.provedor_id) await cancelarPagamento(token, c.provedor_id)
   garantir(await supabase.from('cobrancas_pix').update({ estado: 'cancelado' }).eq('tenant_id', tenantId).eq('id', id), 'Não foi possível cancelar')
 }
+
+export type EstadoPix = {
+  estado: 'aguardando_credenciais' | 'em_homologacao' | 'em_producao' | 'com_erro' | 'suspensa'
+  ambiente: 'homologacao' | 'producao'
+  urlAviso: string
+  temSegredoWebhook: boolean
+  ultimoErro: string | null
+}
+
+/** Estado da integração Pix (sem segredos); null se nunca foi configurada. */
+export async function estadoPix(supabase: Cliente, tenantId: string): Promise<EstadoPix | null> {
+  const { data } = await supabase.from('integracoes').select('estado, ambiente, ultimo_erro').eq('tenant_id', tenantId).eq('dominio', 'pix').maybeSingle()
+  if (!data) return null
+  return {
+    estado: data.estado,
+    ambiente: data.ambiente,
+    urlAviso: urlAvisoPix(tenantId),
+    temSegredoWebhook: !!(await lerSegredo(tenantId, 'pix', 'segredo_webhook')),
+    ultimoErro: data.ultimo_erro,
+  }
+}
+
+/** Últimas cobranças Pix (para o painel acompanhar o que caiu). */
+export async function listarCobrancasPix(supabase: Cliente, tenantId: string, limite = 50): Promise<CobrancaPix[]> {
+  return ouErro(
+    await supabase.from('cobrancas_pix').select('*').eq('tenant_id', tenantId).order('criado_em', { ascending: false }).limit(limite),
+    'Não foi possível ler as cobranças Pix',
+  ).map(paraCobranca)
+}

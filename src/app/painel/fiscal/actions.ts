@@ -4,7 +4,7 @@
 import { revalidatePath } from 'next/cache'
 import { exigirModulo } from '@/lib/auth/guardas'
 import { ErroDados } from '@/lib/dados/erros'
-import { cancelarNfce, emitirNfce } from '@/lib/dados/fiscal'
+import { cancelarNfce, emitirNfce, salvarFiscalProduto } from '@/lib/dados/fiscal'
 import { lerDocumento } from '@/lib/dominio/documento'
 import { uuid, validar, z } from '@/lib/validacao/zod'
 
@@ -45,5 +45,36 @@ export async function cancelarNfceAction(documentoId: string, justificativa: str
     return resposta.estado === 'cancelado' ? { ok: true } : { ok: false, erro: resposta.mensagem ?? 'O emissor não confirmou o cancelamento.' }
   } catch (e) {
     return { ok: false, erro: mensagem(e, 'Não foi possível cancelar.') }
+  }
+}
+
+const vazioNulo = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? null : v)
+const esquemaFiscalProduto = z.object({
+  produtoId: uuid,
+  ncm: z.preprocess(vazioNulo, z.string().regex(/^[0-9]{8}$/, 'NCM tem 8 dígitos').nullable()),
+  cfop: z.string().regex(/^[0-9]{4}$/, 'CFOP tem 4 dígitos'),
+  csosn: z.string().regex(/^[0-9]{3}$/, 'CSOSN tem 3 dígitos'),
+  origem: z.coerce.number().int().min(0).max(8),
+  cest: z.preprocess(vazioNulo, z.string().regex(/^[0-9]{7}$/, 'CEST tem 7 dígitos').nullable()),
+})
+
+/** NCM, CFOP, CSOSN, origem e CEST de um produto (o que a nota precisa). */
+export async function salvarFiscalProdutoAction(entrada: unknown): Promise<Resultado> {
+  const ctx = await exigirModulo('fiscal')
+  // NCM e CEST costumam vir com pontos ("2106.90.90"): fica só o número.
+  const soDigitos = new Set(['ncm', 'cfop', 'csosn', 'cest'])
+  const bruto =
+    entrada && typeof entrada === 'object'
+      ? Object.fromEntries(Object.entries(entrada).map(([k, v]) => [k, soDigitos.has(k) && typeof v === 'string' ? v.replace(/[^0-9]/g, '') : v]))
+      : entrada
+  const r = validar(esquemaFiscalProduto, bruto)
+  if (!r.ok) return { ok: false, erro: r.erros[0] ?? 'Dados inválidos' }
+  try {
+    const { produtoId, ...d } = r.dados
+    await salvarFiscalProduto(ctx.supabase, ctx.tenantId, produtoId, d)
+    revalidatePath('/painel/fiscal', 'layout')
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, erro: mensagem(e, 'Não foi possível guardar.') }
   }
 }
