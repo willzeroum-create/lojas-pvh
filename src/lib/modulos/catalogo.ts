@@ -32,7 +32,7 @@ export type GrupoModulo = keyof typeof GRUPOS_MODULO
 export type Maturidade = 'funcional' | 'pre_funcional' | 'planejado'
 
 /** Ícones dos separadores do painel; o componente de navegação traduz o nome. */
-export type IconeModulo = 'pdv' | 'caixa' | 'comandas' | 'cozinha' | 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
+export type IconeModulo = 'estoque' | 'pdv' | 'caixa' | 'comandas' | 'cozinha' | 'pedidos' | 'cardapio' | 'clientes' | 'financeiro' | 'loja' | 'resumo' | 'conta'
 
 export type ModuloModelo = {
   id: string
@@ -149,9 +149,10 @@ export const MODULOS = [
   {
     id: 'estoque',
     nome: 'Estoque',
-    descricao: 'Entradas por XML e manuais, saídas, balanço e alertas de mínimo.',
+    descricao: 'Entrada pelo XML da nota, saídas com motivo, baixa automática pela venda, inventário e alerta de mínimo.',
     grupo: 'estoque',
-    maturidade: 'planejado',
+    maturidade: 'funcional',
+    painel: { href: '/painel/estoque', rotulo: 'Estoque', icone: 'estoque', ordem: 50 },
   },
   {
     id: 'compras',
@@ -164,9 +165,9 @@ export const MODULOS = [
   {
     id: 'producao',
     nome: 'Produção e fichas técnicas',
-    descricao: 'Ficha técnica, custo por produto, ordens de produção e desossa.',
+    descricao: 'Ficha técnica com custo real (CMV), margem e preço sugerido; baixa dos insumos na venda.',
     grupo: 'estoque',
-    maturidade: 'planejado',
+    maturidade: 'funcional',
     requer: ['estoque'],
   },
   {

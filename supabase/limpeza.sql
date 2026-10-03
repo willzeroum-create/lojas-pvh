@@ -13,6 +13,7 @@ drop policy if exists "fotos: tenant substitui" on storage.objects;
 drop policy if exists "fotos: tenant apaga" on storage.objects;
 
 drop table if exists
+  public.inventarios, public.estoque_vinculos, public.estoque_entrada_itens, public.estoque_entradas, public.estoque_movimentos,
   public.comandas, public.mesas, public.estacao_categorias, public.estacoes,
   public.pagamentos_pedido, public.caixa_conferencias, public.caixa_movimentos, public.caixa_sessoes,
   public.baixas, public.parcelas, public.titulos, public.categorias_financeiras, public.carteiras,
@@ -35,9 +36,14 @@ drop function if exists public.abrir_comanda(uuid, uuid, uuid, text, integer, te
 drop function if exists public.fechar_comanda(jsonb);
 drop function if exists public.juntar_comandas(uuid, uuid, uuid);
 drop function if exists public.cozinha_padrao(uuid);
+drop function if exists public.estornar_movimento_estoque(uuid, uuid, text);
+drop function if exists public.concluir_entrada_estoque(uuid, uuid, text);
+drop function if exists public.aplicar_inventario(uuid, text, jsonb, text);
 
 drop type if exists public.tipo_pessoa;
 drop type if exists public.estado_comanda;
+drop type if exists public.tipo_movimento_estoque;
+drop type if exists public.estado_entrada;
 drop type if exists public.estado_preparo;
 drop type if exists public.tipo_movimento_caixa;
 drop type if exists public.estado_caixa;

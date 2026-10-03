@@ -3,6 +3,7 @@
 import {
   Armchair,
   BarChart3,
+  Boxes,
   ChefHat,
   Landmark,
   ScanBarcode,
@@ -30,6 +31,7 @@ const ICONES: Record<IconeModulo, LucideIcon> = {
   financeiro: Wallet,
   pdv: ScanBarcode,
   caixa: Landmark,
+  estoque: Boxes,
   comandas: Armchair,
   cozinha: ChefHat,
   loja: Store,

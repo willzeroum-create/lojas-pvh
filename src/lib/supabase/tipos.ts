@@ -33,6 +33,9 @@ type Tabela<Linha, Opcionais extends keyof Linha, Relacoes extends Relacao[] = [
 export type TenantStatus = 'onboarding' | 'ativo' | 'suspenso' | 'cancelado'
 export type PapelMembro = 'dono' | 'funcionario'
 export type CanalPedido = 'cardapio' | 'whatsapp' | 'balcao' | 'ifood' | '99food' | 'mesa'
+export type UnidadeEstoque = 'un' | 'kg' | 'g' | 'l' | 'ml' | 'cx' | 'pct' | 'dz'
+export type TipoMovimentoEstoque = 'entrada' | 'saida' | 'venda' | 'ajuste' | 'estorno' | 'producao'
+export type EstadoEntrada = 'pendente' | 'concluida' | 'cancelada'
 export type EstadoPreparo = 'aguardando' | 'em_preparo' | 'pronto' | 'entregue' | 'cancelado'
 export type EstadoComanda = 'aberta' | 'conta' | 'fechada' | 'cancelada'
 export type PedidoStatus = 'novo' | 'aceite' | 'pronto' | 'concluido' | 'cancelado'
@@ -101,6 +104,11 @@ export type ProdutoLinha = {
   sku: string | null
   codigo_barras: string | null
   vendido_por_peso: boolean
+  controla_estoque: boolean
+  unidade: UnidadeEstoque
+  estoque_atual: number
+  estoque_minimo: number
+  custo_medio: number
   disponivel: boolean
   tempo_preparo_min: number | null
   ordem: number
@@ -176,6 +184,7 @@ export type ItemPedidoLinha = {
   entregue_em: string | null
   cancelado_motivo: string | null
   criado_em: string
+  estoque_baixado: boolean
 }
 
 export type MembroLinha = {
@@ -256,6 +265,8 @@ export type InsumoLinha = {
   quantidade_atual: number
   quantidade_minima: number
   custo_unitario: number
+  codigo_barras: string | null
+  ativo: boolean
 }
 
 export type FichaLinha = {
@@ -474,6 +485,77 @@ export type ComandaLinha = {
   fechada_em: string | null
 }
 
+export type EstoqueMovimentoLinha = {
+  id: string
+  tenant_id: string
+  produto_id: string | null
+  insumo_id: string | null
+  tipo: TipoMovimentoEstoque
+  motivo: string
+  quantidade: number
+  custo_unitario: number | null
+  saldo_antes: number
+  saldo_depois: number
+  origem: 'entrada' | 'pedido' | 'inventario' | 'manual' | 'estorno' | null
+  origem_id: string | null
+  estorno_de: string | null
+  autor_nome: string | null
+  criado_em: string
+}
+
+export type EstoqueEntradaLinha = {
+  id: string
+  tenant_id: string
+  fornecedor_id: string | null
+  fornecedor_nome: string | null
+  fornecedor_documento: string | null
+  numero_nota: string | null
+  serie: string | null
+  chave_acesso: string | null
+  emitida_em: string | null
+  valor_total: number
+  estado: EstadoEntrada
+  observacoes: string | null
+  duplicatas: Json
+  autor_nome: string | null
+  criado_em: string
+  concluida_em: string | null
+}
+
+export type EstoqueEntradaItemLinha = {
+  id: string
+  tenant_id: string
+  entrada_id: string
+  produto_id: string | null
+  insumo_id: string | null
+  descricao: string
+  codigo_fornecedor: string | null
+  ean: string | null
+  unidade_nota: string | null
+  quantidade_nota: number
+  fator: number
+  valor_total: number
+}
+
+export type EstoqueVinculoLinha = {
+  tenant_id: string
+  fornecedor_documento: string
+  codigo_fornecedor: string
+  produto_id: string | null
+  insumo_id: string | null
+  fator: number
+}
+
+export type InventarioLinha = {
+  id: string
+  tenant_id: string
+  descricao: string
+  autor_nome: string | null
+  itens: Json
+  ajustes: number
+  criado_em: string
+}
+
 export type TenantModuloLinha = {
   tenant_id: string
   modulo: string
@@ -554,6 +636,11 @@ export type Database = {
         | 'sku'
         | 'codigo_barras'
         | 'vendido_por_peso'
+        | 'controla_estoque'
+        | 'unidade'
+        | 'estoque_atual'
+        | 'estoque_minimo'
+        | 'custo_medio'
         | 'disponivel'
         | 'tempo_preparo_min'
         | 'ordem'
@@ -666,7 +753,8 @@ export type Database = {
         | 'pronto_em'
         | 'entregue_em'
         | 'cancelado_motivo'
-        | 'criado_em',
+        | 'criado_em'
+        | 'estoque_baixado',
         [
           {
             foreignKeyName: 'itens_pedido_tenant_id_fkey'
@@ -777,7 +865,7 @@ export type Database = {
       >
       insumos: Tabela<
         InsumoLinha,
-        'id' | 'quantidade_atual' | 'quantidade_minima' | 'custo_unitario',
+        'id' | 'quantidade_atual' | 'quantidade_minima' | 'custo_unitario' | 'codigo_barras' | 'ativo',
         [
           {
             foreignKeyName: 'insumos_tenant_id_fkey'
@@ -1083,6 +1171,82 @@ export type Database = {
           },
         ]
       >
+      estoque_movimentos: Tabela<
+        EstoqueMovimentoLinha,
+        'id' | 'produto_id' | 'insumo_id' | 'custo_unitario' | 'origem' | 'origem_id' | 'estorno_de' | 'autor_nome' | 'criado_em',
+        [
+          {
+            foreignKeyName: 'estoque_movimentos_produto_id_tenant_id_fkey'
+            columns: ['produto_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'produtos'
+            referencedColumns: ['id', 'tenant_id']
+          },
+          {
+            foreignKeyName: 'estoque_movimentos_insumo_id_tenant_id_fkey'
+            columns: ['insumo_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'insumos'
+            referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
+      estoque_entradas: Tabela<
+        EstoqueEntradaLinha,
+        | 'id'
+        | 'fornecedor_id'
+        | 'fornecedor_nome'
+        | 'fornecedor_documento'
+        | 'numero_nota'
+        | 'serie'
+        | 'chave_acesso'
+        | 'emitida_em'
+        | 'valor_total'
+        | 'estado'
+        | 'observacoes'
+        | 'duplicatas'
+        | 'autor_nome'
+        | 'criado_em'
+        | 'concluida_em',
+        [
+          {
+            foreignKeyName: 'estoque_entradas_fornecedor_id_tenant_id_fkey'
+            columns: ['fornecedor_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'pessoas'
+            referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
+      estoque_entrada_itens: Tabela<
+        EstoqueEntradaItemLinha,
+        'id' | 'produto_id' | 'insumo_id' | 'codigo_fornecedor' | 'ean' | 'unidade_nota' | 'fator',
+        [
+          {
+            foreignKeyName: 'estoque_entrada_itens_entrada_id_tenant_id_fkey'
+            columns: ['entrada_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'estoque_entradas'
+            referencedColumns: ['id', 'tenant_id']
+          },
+          {
+            foreignKeyName: 'estoque_entrada_itens_produto_id_tenant_id_fkey'
+            columns: ['produto_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'produtos'
+            referencedColumns: ['id', 'tenant_id']
+          },
+          {
+            foreignKeyName: 'estoque_entrada_itens_insumo_id_tenant_id_fkey'
+            columns: ['insumo_id', 'tenant_id']
+            isOneToOne: false
+            referencedRelation: 'insumos'
+            referencedColumns: ['id', 'tenant_id']
+          },
+        ]
+      >
+      estoque_vinculos: Tabela<EstoqueVinculoLinha, 'produto_id' | 'insumo_id' | 'fator'>
+      inventarios: Tabela<InventarioLinha, 'id' | 'descricao' | 'autor_nome' | 'itens' | 'ajustes' | 'criado_em'>
       tenant_modulos: Tabela<
         TenantModuloLinha,
         'ativo' | 'configuracao' | 'ativado_em' | 'criado_em' | 'atualizado_em',
@@ -1111,6 +1275,9 @@ export type Database = {
       fechar_comanda: { Args: { p: Json }; Returns: PedidoLinha }
       juntar_comandas: { Args: { p_tenant: string; p_destino: string; p_origem: string }; Returns: undefined }
       cozinha_padrao: { Args: { p_tenant: string }; Returns: undefined }
+      estornar_movimento_estoque: { Args: { p_tenant: string; p_movimento: string; p_autor: string }; Returns: undefined }
+      concluir_entrada_estoque: { Args: { p_tenant: string; p_entrada: string; p_autor: string }; Returns: number }
+      aplicar_inventario: { Args: { p_tenant: string; p_descricao: string; p_contagem: Json; p_autor: string }; Returns: string }
       cancelar_venda_balcao: {
         Args: { p_tenant: string; p_pedido: string; p_motivo: string; p_autor: string }
         Returns: undefined
@@ -1134,6 +1301,8 @@ export type Database = {
       tipo_movimento_caixa: TipoMovimentoCaixa
       estado_preparo: EstadoPreparo
       estado_comanda: EstadoComanda
+      tipo_movimento_estoque: TipoMovimentoEstoque
+      estado_entrada: EstadoEntrada
     }
     CompositeTypes: { [_ in never]: never }
   }
