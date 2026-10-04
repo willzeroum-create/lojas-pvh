@@ -5,6 +5,8 @@
  *
  *   pnpm migrar           aplica o que falta
  *   pnpm migrar --seed    idem, e depois corre supabase/seed.sql
+ *   pnpm migrar --demo    idem, e depois supabase/demo-erp.sql (módulos ligados e
+ *                         gerente de teste na Lanchonete da Praça; implica --seed)
  *   pnpm migrar --listar  só mostra o estado
  *   pnpm migrar --do-zero apaga tudo o que é da plataforma (supabase/limpeza.sql) e
  *                         reinstala; só em projectos sem dados reais
@@ -18,6 +20,7 @@ import { Client } from 'pg'
 
 const PASTA = path.resolve('supabase/migrations')
 const SEED = path.resolve('supabase/seed.sql')
+const DEMO = path.resolve('supabase/demo-erp.sql')
 const LIMPEZA = path.resolve('supabase/limpeza.sql')
 
 function carregarEnvLocal() {
@@ -38,7 +41,8 @@ async function principal() {
     console.error('Falta SUPABASE_DB_URL em .env.local (Dashboard → Connect → Session pooler, com a senha).')
     process.exit(1)
   }
-  const seed = process.argv.includes('--seed')
+  const demo = process.argv.includes('--demo')
+  const seed = demo || process.argv.includes('--seed')
   const soListar = process.argv.includes('--listar')
   const doZero = process.argv.includes('--do-zero')
 
@@ -90,6 +94,11 @@ async function principal() {
     if (seed && !soListar) {
       process.stdout.write('  seed         supabase/seed.sql … ')
       await cliente.query(readFileSync(SEED, 'utf8'))
+      console.log('ok')
+    }
+    if (demo && !soListar) {
+      process.stdout.write('  demo         supabase/demo-erp.sql … ')
+      await cliente.query(readFileSync(DEMO, 'utf8'))
       console.log('ok')
     }
   } finally {
