@@ -11,7 +11,7 @@ export default function Portfolio({ itens }: { itens: readonly ItemPortfolio[] }
           <>
             <div className={`${estilos.capaPortfolio} ${estilos[`capaPortfolio${indice % 4}`]}`}>
               <span className={estilos.indicePortfolio}>
-                0{indice + 1}
+                {String(indice + 1).padStart(2, '0')}
                 <span>{item.tipo}</span>
               </span>
               {item.imagem ? (

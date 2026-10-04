@@ -5,8 +5,9 @@
  *
  * Por decidir com o dono (ver docs/pesquisa/landing.md):
  *   - nome da agência (provisório: MARCA.nome) e Instagram;
- *   - publicar ou não os preços (`planos.mostrarPrecos`);
- *   - links e imagens do portfólio.
+ *   - número do WhatsApp comercial (NEXT_PUBLIC_WHATSAPP_COMERCIAL).
+ * Decidido: sem valores no site (cotação pelo WhatsApp); portfólio só com
+ * capturas, sem links para os sites dos clientes.
  */
 import { urlWhatsapp } from '@/lib/dominio/whatsapp'
 import { MARCA } from './marca'
@@ -30,7 +31,7 @@ export const AGENCIA = {
   instagram: null as string | null,
 
   hero: {
-    sobretitulo: 'Sistemas, sites e automação em Porto Velho',
+    sobretitulo: 'Sistemas, sites e automação · de Porto Velho para o mundo',
     titulo: 'O sistema da sua empresa, montado só com o que você usa.',
     subtitulo:
       'Vendas, estoque, financeiro, nota fiscal, cardápio e WhatsApp num painel feito para o seu negócio. A gente vai até você, monta tudo e treina a equipe.',
@@ -50,6 +51,13 @@ export const AGENCIA = {
     viradaDestaque: 'É sistema demais.',
     texto:
       'A maioria dos sistemas da cidade é o mesmo pacote para todo mundo: troca o nome e a cor e cobra pelo pacote inteiro. Você paga pelo que não usa e a equipe se perde em menus que não são do seu negócio.',
+  },
+
+  /** Onde já há clientes: aparece no portfólio e nas perguntas. */
+  presenca: {
+    titulo: 'Atendemos empresas em todo o mundo.',
+    paises: ['Brasil', 'Portugal', 'Espanha', 'Países Baixos'],
+    texto: 'Em Porto Velho vamos até você. Fora daqui, montamos e treinamos à distância, no seu idioma.',
   },
 
   servicos: [
@@ -134,35 +142,78 @@ export const AGENCIA = {
       preco: 'a partir de R$ 15 mil',
       texto: 'O sistema completo, sem mensalidade. Custos de terceiros (nota fiscal, WhatsApp) à parte.',
     },
-    semPreco: 'O valor depende dos módulos. Na visita a gente monta e você vê o preço antes de fechar.',
+    semPreco: 'Não trabalhamos com tabela: cada empresa recebe um sistema montado para ela. Chame no WhatsApp e receba a sua cotação.',
+    cta: 'Pedir cotação no WhatsApp',
   },
 
   portfolio: [
     {
-      nome: 'One',
-      tipo: 'Site',
-      descricao: 'Vídeo no topo e o carro em destaque trocado pelo próprio cliente.',
+      nome: "Stijvers Auto's",
+      tipo: 'Site e catálogo · Países Baixos',
+      descricao: 'Stand de viaturas sinistradas em Almere, desde 1938. Mais de 200 carros em stock com filtro rápido, para reparadores e exportadores.',
       url: null,
-      imagem: null,
+      imagem: '/media/portfolio/stijvers.png',
     },
     {
-      nome: 'Ótica 3D',
-      tipo: 'Loja virtual',
-      descricao: 'Loja de óculos com modelo 3D que o cliente gira na tela antes de comprar.',
+      nome: 'SunWaves',
+      tipo: 'Loja virtual · Brasil',
+      descricao: 'Ótica de Porto Velho com os óculos em 3D que o cliente gira na tela, kits com desconto automático e pedido direto no WhatsApp.',
       url: null,
-      imagem: null,
+      imagem: '/media/portfolio/sunwaves.png',
     },
     {
-      nome: 'São Luís',
-      tipo: 'Site',
-      descricao: 'Simulação de financiamento que termina no WhatsApp do vendedor.',
+      nome: 'DEGE Cars',
+      tipo: 'Site · Espanha',
+      descricao: 'Remarketing de veículos em Alicante, em português, espanhol e inglês, com estoque e simulador.',
       url: null,
-      imagem: null,
+      imagem: '/media/portfolio/degecars.png',
     },
     {
-      nome: 'Soundwaves',
-      tipo: 'Site',
-      descricao: 'Site institucional com identidade própria.',
+      nome: 'Import Dream Car',
+      tipo: 'Site e simulador · Portugal',
+      descricao: 'Importação de carros da Alemanha, Holanda e Bélgica, com simulador do imposto e análise do anúncio por link.',
+      url: null,
+      imagem: '/media/portfolio/import-dream-car.png',
+    },
+    {
+      nome: 'Alves & Bora',
+      tipo: 'Site · Portugal',
+      descricao: 'Cozinhas e interiores sob medida, com um atelier 3D para o cliente imaginar o espaço antes de encomendar.',
+      url: null,
+      imagem: '/media/portfolio/alves-bora-cozinhas.png',
+    },
+    {
+      nome: 'Alves & Menon Imports',
+      tipo: 'Site · Portugal',
+      descricao: 'Importação de viaturas com cada carro em destaque, como numa vitrine.',
+      url: null,
+      imagem: '/media/portfolio/alves-menon-imports.png',
+    },
+    {
+      nome: 'Futuro Automóvel',
+      tipo: 'Site · Portugal',
+      descricao: 'Stand de viaturas selecionadas, com estoque, garantia e financiamento à medida.',
+      url: null,
+      imagem: '/media/portfolio/futuro-automovel.png',
+    },
+    {
+      nome: 'Sr. Ronaldo Reparações',
+      tipo: 'Site · Portugal',
+      descricao: 'Assistência técnica 24 horas: ligar ou mandar fotos do problema pelo WhatsApp a um toque.',
+      url: null,
+      imagem: '/media/portfolio/sr-ronaldo.png',
+    },
+    {
+      nome: 'LegalCar',
+      tipo: 'Sistema · Portugal',
+      descricao: 'Gestão da legalização de carros importados, com portal para o cliente acompanhar cada etapa.',
+      url: null,
+      imagem: '/media/portfolio/legalcar.png',
+    },
+    {
+      nome: 'Bem Veículos',
+      tipo: 'Site e painel · Brasil',
+      descricao: 'Loja de veículos com estoque, financiamento e troca, e um painel para a equipe atualizar tudo.',
       url: null,
       imagem: null,
     },
@@ -194,6 +245,15 @@ export const AGENCIA = {
       resposta: 'Sim. Cada empresa tem os dados isolados e cada pessoa da equipe entra com o próprio acesso.',
     },
     {
+      pergunta: 'Vocês atendem fora de Porto Velho?',
+      resposta:
+        'Sim. Temos clientes no Brasil, em Portugal, na Espanha e nos Países Baixos. Fora de Porto Velho, a montagem e o treinamento são feitos à distância.',
+    },
+    {
+      pergunta: 'Quanto custa?',
+      resposta: 'Depende do que a sua empresa precisa. Chame no WhatsApp, conte como funciona o seu negócio e receba a cotação.',
+    },
+    {
       pergunta: 'Quanto tempo leva para começar?',
       resposta:
         'Um cardápio digital fica no ar em um dia. Um sistema com estoque e financeiro, em poucas semanas.',
@@ -202,7 +262,7 @@ export const AGENCIA = {
 
   contato: {
     titulo: 'Bora montar o seu?',
-    texto: 'Mande uma mensagem e a gente marca uma visita na sua empresa.',
+    texto: 'Mande uma mensagem e receba a cotação. Em Porto Velho a gente vai até você; no resto do mundo, fazemos tudo à distância.',
   },
 } as const
 

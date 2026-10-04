@@ -303,6 +303,15 @@ export default function PaginaInicial() {
               {String(AGENCIA.portfolio.length).padStart(2, '0')}
             </span>
           </Revelar>
+          <Revelar className={estilos.presenca}>
+            <p className={estilos.presencaTitulo}>{AGENCIA.presenca.titulo}</p>
+            <ul className={estilos.presencaPaises} aria-label="Países com clientes">
+              {AGENCIA.presenca.paises.map((pais) => (
+                <li key={pais}>{pais}</li>
+              ))}
+            </ul>
+            <p className={estilos.presencaTexto}>{AGENCIA.presenca.texto}</p>
+          </Revelar>
           <Portfolio itens={AGENCIA.portfolio} />
         </section>
 

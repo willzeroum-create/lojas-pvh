@@ -1,4 +1,4 @@
-import { AGENCIA, linkWhatsappAgencia } from '@/lib/config/agencia'
+import { linkWhatsappAgencia } from '@/lib/config/agencia'
 import Revelar from './Revelar'
 import estilos from './landing.module.css'
 
@@ -8,6 +8,7 @@ type ConteudoPlanos = {
   mensal: ModeloPlano
   compra: ModeloPlano
   semPreco: string
+  cta: string
 }
 
 /** A publicação dos valores é uma decisão do conteúdo, independente da apresentação. */
@@ -25,7 +26,7 @@ export default function Planos({ planos }: { planos: ConteudoPlanos }) {
             {planos.mostrarPrecos && <p className={estilos.precoPlano}>{plano.preco}</p>}
             <p>{plano.texto}</p>
             <a href={linkWhatsappAgencia()} className={estilos.linkClaro}>
-              {AGENCIA.hero.ctaPrincipal}
+              {planos.cta}
               <span aria-hidden="true">↗</span>
             </a>
           </Revelar>
