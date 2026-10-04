@@ -1,6 +1,6 @@
 /**
  * Conteúdo da página inicial: a landing da agência. Texto e dados vivem aqui;
- * os componentes da landing (`src/app/_landing`) só os lêem. Para mudar uma
+ * as abas do site (`src/app/(site)`) só os lêem. Para mudar uma
  * frase, muda-se aqui.
  *
  * Por decidir com o dono (ver docs/pesquisa/landing.md):
@@ -59,6 +59,60 @@ export const AGENCIA = {
     paises: ['Brasil', 'Portugal', 'Espanha', 'Países Baixos'],
     texto: 'Em Porto Velho vamos até você. Fora daqui, montamos e treinamos à distância, no seu idioma.',
   },
+
+  /** As abas do site, pela ordem do menu. */
+  abas: [
+    { href: '/', rotulo: 'Início' },
+    { href: '/servicos', rotulo: 'Serviços' },
+    { href: '/segmentos', rotulo: 'Segmentos' },
+    { href: '/trabalhos', rotulo: 'Trabalhos' },
+    { href: '/monte-o-seu', rotulo: 'Monte o seu' },
+    { href: '/contato', rotulo: 'Contato' },
+  ],
+
+  /** Os três mundos que atendemos: aparecem no Início e na aba Segmentos. */
+  segmentos: [
+    {
+      id: 'restaurantes',
+      nome: 'Restaurantes',
+      frase: 'O pedido chega pronto. A cozinha sabe o que fazer.',
+      texto:
+        'Cardápio por link com pedido no WhatsApp, mesas e comandas no celular do garçom, cozinha na tela, caixa que fecha certo e entrega com o motoboy marcando pelo celular.',
+      entregas: ['Cardápio digital', 'Comandas e mesas', 'Tela da cozinha', 'Delivery próprio', 'Cashback para o cliente voltar'],
+      exemplo: null,
+    },
+    {
+      id: 'stands',
+      nome: 'Stands de carros',
+      frase: 'O carro certo, encontrado em menos de um minuto.',
+      texto:
+        'Estoque com filtro que funciona, cada carro com a sua página, simulador de financiamento ou de importação e o contato no WhatsApp do vendedor. Em português, espanhol, inglês ou neerlandês.',
+      entregas: ['Estoque online', 'Página por carro', 'Simuladores', 'Vários idiomas', 'Painel para a equipe atualizar'],
+      exemplo: "Stijvers Auto's",
+    },
+    {
+      id: 'lojas',
+      nome: 'Lojas',
+      frase: 'Vende no balcão, no site e no WhatsApp. Um estoque só.',
+      texto:
+        'Frente de caixa com leitor e balança, estoque que baixa sozinho, nota fiscal, Pix com QR que dá baixa sozinho e loja online com o produto que o cliente gira na tela.',
+      entregas: ['Frente de caixa', 'Estoque e compras', 'Nota fiscal', 'Pix integrado', 'Loja virtual'],
+      exemplo: 'SunWaves',
+    },
+  ],
+
+  /** "Antes e depois": o que o dono larga quando o sistema entra. */
+  antesDepois: {
+    antes: ['Pedido anotado no caderno', 'Estoque na cabeça do dono', 'Caixa conferido na calculadora', 'Cliente esquecido depois da compra'],
+    depois: ['Pedido entra no painel com som', 'Estoque baixa a cada venda', 'Caixa fecha com a diferença à vista', 'Cashback chama o cliente de volta'],
+  },
+
+  numeros: [
+    { valor: '4', rotulo: 'países com clientes' },
+    { valor: '10+', rotulo: 'projetos no ar' },
+    { valor: '1 dia', rotulo: 'para um cardápio digital' },
+    { valor: '100%', rotulo: 'feito sob medida' },
+  ],
 
   servicos: [
     {
