@@ -1,23 +1,17 @@
-import { Bricolage_Grotesque, Caveat, Instrument_Sans, JetBrains_Mono } from 'next/font/google'
+import { Caveat, Geist, Geist_Mono } from 'next/font/google'
 import Link from 'next/link'
 import { AGENCIA } from '@/lib/config/agencia'
 import Menu from './_componentes/Menu'
 import estilos from './site.module.css'
 
 /** Site da agência: fontes próprias, só carregadas nestas abas. */
-const bricolage = Bricolage_Grotesque({
-  subsets: ['latin'],
-  axes: ['wdth', 'opsz'],
-  variable: '--font-bricolage',
-  display: 'swap',
-})
-const instrument = Instrument_Sans({ subsets: ['latin'], variable: '--font-instrument', display: 'swap' })
+const geist = Geist({ subsets: ['latin'], variable: '--font-geist', display: 'swap' })
 const manuscrita = Caveat({ subsets: ['latin'], weight: ['600'], variable: '--font-manuscrita', display: 'swap' })
-const mono = JetBrains_Mono({ subsets: ['latin'], weight: ['500', '600'], variable: '--font-mono', display: 'swap' })
+const mono = Geist_Mono({ subsets: ['latin'], weight: ['500'], variable: '--font-geist-mono', display: 'swap' })
 
 export default function LayoutSite({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`${bricolage.variable} ${instrument.variable} ${mono.variable} ${manuscrita.variable} ${estilos.site}`}>
+    <div className={`${geist.variable} ${mono.variable} ${manuscrita.variable} ${estilos.site}`}>
       <Menu />
       <main>{children}</main>
       <footer className={estilos.rodape}>

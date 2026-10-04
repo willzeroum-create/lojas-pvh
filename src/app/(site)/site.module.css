@@ -16,9 +16,9 @@
   --sol-3: #ff4f8b;
   --agua: #3dd6c3;
   --por-do-sol: linear-gradient(100deg, var(--sol-1) 0%, var(--sol-2) 45%, var(--sol-3) 100%);
-  --titulo: var(--font-bricolage), 'Arial Narrow', sans-serif;
-  --texto: var(--font-instrument), system-ui, sans-serif;
-  --mono: var(--font-mono), ui-monospace, monospace;
+  --titulo: var(--font-geist), system-ui, sans-serif;
+  --texto: var(--font-geist), system-ui, sans-serif;
+  --mono: var(--font-geist-mono), ui-monospace, monospace;
   --margem: clamp(16px, 4vw, 56px);
   --largura: 1360px;
 
@@ -84,8 +84,8 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font: 800 20px/1 var(--titulo);
-  font-stretch: 85%;
+  font: 600 19px/1 var(--titulo);
+  letter-spacing: -0.02em;
   letter-spacing: 0.02em;
   text-decoration: none;
   margin-right: auto;
@@ -198,8 +198,7 @@
 .gaveta ul a {
   display: block;
   padding: 6px 0;
-  font: 700 clamp(34px, 9vw, 52px)/1.05 var(--titulo);
-  font-stretch: 80%;
+  font: 600 clamp(34px, 9vw, 52px)/1.05 var(--titulo);
   text-decoration: none;
   color: var(--papel-2);
 }
@@ -292,8 +291,8 @@
 }
 .tituloHeroi {
   margin: 0;
-  font: 800 clamp(48px, 8.4vw, 124px)/0.92 var(--titulo);
-  font-stretch: 78%;
+  font: 600 clamp(44px, 6.6vw, 96px)/1.02 var(--titulo);
+  letter-spacing: -0.045em;
   letter-spacing: -0.02em;
   text-wrap: balance;
 }
@@ -410,8 +409,7 @@
   visibility: hidden;
 }
 .aberturaMarca {
-  font: 800 34px/1 var(--titulo);
-  font-stretch: 80%;
+  font: 600 34px/1 var(--titulo);
   letter-spacing: 0.32em;
   background: var(--por-do-sol);
   -webkit-background-clip: text;
@@ -458,8 +456,8 @@
 }
 .tituloSecao {
   margin: 0;
-  font: 750 clamp(40px, 6vw, 84px)/0.95 var(--titulo);
-  font-stretch: 80%;
+  font: 600 clamp(32px, 4.2vw, 60px)/1.06 var(--titulo);
+  letter-spacing: -0.035em;
   letter-spacing: -0.015em;
   text-wrap: balance;
 }
@@ -487,8 +485,8 @@
 .tituloAba {
   margin: 0;
   max-width: 14ch;
-  font: 800 clamp(56px, 10vw, 148px)/0.88 var(--titulo);
-  font-stretch: 75%;
+  font: 600 clamp(46px, 7vw, 100px)/1.02 var(--titulo);
+  letter-spacing: -0.045em;
   letter-spacing: -0.025em;
 }
 .leadAba {
@@ -569,8 +567,7 @@
   margin-left: auto;
 }
 .listaDepois li {
-  font: 700 clamp(20px, 2.4vw, 32px)/1.15 var(--titulo);
-  font-stretch: 82%;
+  font: 600 clamp(20px, 2.4vw, 32px)/1.15 var(--titulo);
 }
 .listaDepois li::after {
   content: ' ✓';
@@ -652,8 +649,8 @@
 }
 .mundoNome {
   margin: 0;
-  font: 800 clamp(34px, 3.6vw, 52px)/0.95 var(--titulo);
-  font-stretch: 78%;
+  font: 600 clamp(26px, 2.4vw, 36px)/1.1 var(--titulo);
+  letter-spacing: -0.025em;
 }
 .mundoFrase {
   margin: 0;
@@ -681,8 +678,7 @@
   position: absolute;
   right: -20px;
   top: -30px;
-  font: 800 180px/1 var(--titulo);
-  font-stretch: 70%;
+  font: 600 180px/1 var(--titulo);
   color: rgba(242, 236, 225, 0.04);
   pointer-events: none;
 }
@@ -710,8 +706,8 @@
 }
 .numeroValor {
   display: block;
-  font: 800 clamp(44px, 6vw, 88px)/1 var(--titulo);
-  font-stretch: 75%;
+  font: 600 clamp(38px, 4.4vw, 64px)/1 var(--titulo);
+  letter-spacing: -0.04em;
 }
 .numeroRotulo {
   color: var(--papel-2);
@@ -744,8 +740,8 @@
 }
 .servicoTitulo {
   margin: 0;
-  font: 750 clamp(28px, 3.4vw, 46px)/1 var(--titulo);
-  font-stretch: 80%;
+  font: 600 clamp(24px, 2.6vw, 34px)/1.15 var(--titulo);
+  letter-spacing: -0.025em;
 }
 .servicoTexto {
   margin: 0;
@@ -779,8 +775,7 @@
 }
 .passo::before {
   content: counter(passo, decimal-leading-zero);
-  font: 800 54px/1 var(--titulo);
-  font-stretch: 75%;
+  font: 600 54px/1 var(--titulo);
   background: var(--por-do-sol);
   -webkit-background-clip: text;
   background-clip: text;
@@ -788,7 +783,7 @@
 }
 .passo h3 {
   margin: 0;
-  font: 700 24px/1.1 var(--titulo);
+  font: 600 24px/1.1 var(--titulo);
 }
 .passo p {
   margin: 0;
@@ -817,8 +812,8 @@
 }
 .segmentoNome {
   margin: 0 0 18px;
-  font: 800 clamp(52px, 8vw, 116px)/0.88 var(--titulo);
-  font-stretch: 72%;
+  font: 600 clamp(42px, 5.6vw, 80px)/1.02 var(--titulo);
+  letter-spacing: -0.04em;
   letter-spacing: -0.02em;
 }
 .segmentoFrase {
@@ -901,8 +896,7 @@
   display: grid;
   place-items: center;
   height: 100%;
-  font: 800 clamp(36px, 5vw, 64px)/1 var(--titulo);
-  font-stretch: 75%;
+  font: 600 clamp(36px, 5vw, 64px)/1 var(--titulo);
   color: var(--papel-2);
 }
 .trabalhoLocal {
@@ -923,8 +917,7 @@
 }
 .trabalhoTexto h3 {
   margin: 0;
-  font: 750 26px/1.05 var(--titulo);
-  font-stretch: 82%;
+  font: 600 26px/1.05 var(--titulo);
 }
 .trabalhoTexto p {
   margin: 0;
@@ -1007,8 +1000,7 @@
 }
 .resumoTitulo {
   margin: 0;
-  font: 750 30px/1 var(--titulo);
-  font-stretch: 80%;
+  font: 600 30px/1 var(--titulo);
 }
 .resumoLista {
   display: grid;
@@ -1106,7 +1098,7 @@
   padding: 22px 0;
   cursor: pointer;
   list-style: none;
-  font: 650 clamp(19px, 1.8vw, 23px)/1.25 var(--titulo);
+  font: 600 clamp(19px, 1.8vw, 23px)/1.25 var(--titulo);
 }
 .pergunta summary::-webkit-details-marker {
   display: none;
@@ -1141,8 +1133,8 @@
 .chamadaTitulo {
   margin: 0;
   max-width: 13ch;
-  font: 800 clamp(52px, 9vw, 132px)/0.88 var(--titulo);
-  font-stretch: 74%;
+  font: 600 clamp(42px, 6.4vw, 90px)/1.02 var(--titulo);
+  letter-spacing: -0.045em;
   letter-spacing: -0.02em;
 }
 .rodape {

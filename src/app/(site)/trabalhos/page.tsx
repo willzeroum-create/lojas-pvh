@@ -37,7 +37,7 @@ export default function Trabalhos() {
                 <span className={estilos.trabalhoLocal}>{p.tipo}</span>
               </div>
               <div className={estilos.trabalhoTexto}>
-                <h2 style={{ margin: 0, font: '750 26px/1.05 var(--titulo)', fontStretch: '82%' }}>{p.nome}</h2>
+                <h2 style={{ margin: 0, font: '600 24px/1.15 var(--titulo)', letterSpacing: '-0.02em' }}>{p.nome}</h2>
                 <p>{p.descricao}</p>
               </div>
             </article>
