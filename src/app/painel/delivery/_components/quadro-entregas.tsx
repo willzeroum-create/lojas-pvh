@@ -98,7 +98,7 @@ export function QuadroEntregas({
       )}
       <Mensagem tipo="erro">{erro}</Mensagem>
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
         {colunas.map((coluna) => (
           <section key={coluna.titulo} aria-label={coluna.titulo} className="min-w-0 space-y-3">
             <h2 className="flex items-center justify-between text-sm font-bold tracking-wide text-carvao uppercase">
