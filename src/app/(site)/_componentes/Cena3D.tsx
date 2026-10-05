@@ -48,14 +48,13 @@ type Peca = {
 }
 
 const PECAS: Peca[] = [
-  { modelo: 'strawberry_chocolate_cake', deitado: [-0.78, 0.44], empe: [-0.55, 0.74], z: 0, tamanho: 2.7, rotacao: [0.5, 0.2, 0], giro: [0, 0.004] },
-  { modelo: 'carro', deitado: [0.7, -0.5], empe: [0.42, -0.74], z: 0.6, tamanho: 4.6, rotacao: [0.32, -0.9, 0], giro: [0, 0.0035] },
-  { modelo: 'croissant', deitado: [0.8, 0.5], empe: [0.6, 0.8], z: -0.4, tamanho: 2.6, rotacao: [0.6, 0.4, 0.2], giro: [0.002, 0.003] },
-  { modelo: 'food_apple_01', deitado: [-0.78, -0.5], empe: [-0.6, -0.72], z: 0.4, tamanho: 1.9, rotacao: [0.2, 0, 0.1], giro: [0.001, 0.005] },
-  { modelo: 'digital_wrist_watch', deitado: [0.08, -0.84], empe: [0.06, 0.93], z: 0.5, tamanho: 2.3, rotacao: [1.2, 0.3, 0.15], giro: [0.0025, 0.003] },
-  { modelo: 'moeda', deitado: [-0.3, 0.72], empe: [-0.88, 0.45], z: -2, tamanho: 1.1, rotacao: [1.2, 0.4, 0], giro: [0.004, 0.006] },
-  { modelo: 'moeda', deitado: [0.96, -0.04], empe: [0.88, -0.45], z: -1.5, tamanho: 0.9, rotacao: [0.4, 1.2, 0], giro: [0.005, 0.004] },
-  { modelo: 'moeda', deitado: [-0.42, -0.86], empe: [-0.15, -0.93], z: -1, tamanho: 0.8, rotacao: [0.9, 0.2, 0.4], giro: [0.006, 0.003] },
+  { modelo: 'carro', deitado: [0.74, -0.6], empe: [0.38, -0.74], z: 1.2, tamanho: 5.2, rotacao: [0.22, -0.75, 0], giro: [0, 0.0022] },
+  { modelo: 'anel', deitado: [-0.74, 0.46], empe: [-0.6, 0.76], z: -0.8, tamanho: 2.8, rotacao: [0.9, 0.3, 0.2], giro: [0.003, 0.004] },
+  { modelo: 'croissant', deitado: [0.8, 0.52], empe: [0.62, 0.82], z: -1.2, tamanho: 2.2, rotacao: [0.6, 0.4, 0.2], giro: [0.0015, 0.0025] },
+  { modelo: 'cristal', deitado: [-0.66, -0.44], empe: [-0.58, -0.7], z: 1, tamanho: 2.3, rotacao: [0.4, 0.6, 0.1], giro: [0.002, 0.004] },
+  { modelo: 'food_apple_01', deitado: [-0.32, 0.62], empe: [-0.9, 0.42], z: -5, tamanho: 1.8, rotacao: [0.2, 0, 0.1], giro: [0.001, 0.004] },
+  { modelo: 'digital_wrist_watch', deitado: [0.14, -0.86], empe: [0.04, 0.95], z: 0.4, tamanho: 2.1, rotacao: [1.2, 0.3, 0.15], giro: [0.002, 0.0025] },
+  { modelo: 'capsula', deitado: [0.42, 0.78], empe: [0.9, -0.42], z: -4, tamanho: 1.5, rotacao: [0.5, 0.2, 0.9], giro: [0.004, 0.002] },
 ]
 
 export default function Cena3D({ aoMedir, aoPronto, className }: Props) {
@@ -75,16 +74,22 @@ export default function Cena3D({ aoMedir, aoPronto, className }: Props) {
 
     ;(async () => {
       const THREE = await import('three')
-      const [{ RoomEnvironment }, { GLTFLoader }, { MeshoptDecoder }] = await Promise.all([
-        import('three/examples/jsm/environments/RoomEnvironment.js'),
-        import('three/examples/jsm/loaders/GLTFLoader.js'),
-        import('three/examples/jsm/libs/meshopt_decoder.module.js'),
-      ])
+      const [{ RoomEnvironment }, { GLTFLoader }, { MeshoptDecoder }, { EffectComposer }, { RenderPass }, { UnrealBloomPass }, { ShaderPass }, { OutputPass }] =
+        await Promise.all([
+          import('three/examples/jsm/environments/RoomEnvironment.js'),
+          import('three/examples/jsm/loaders/GLTFLoader.js'),
+          import('three/examples/jsm/libs/meshopt_decoder.module.js'),
+          import('three/examples/jsm/postprocessing/EffectComposer.js'),
+          import('three/examples/jsm/postprocessing/RenderPass.js'),
+          import('three/examples/jsm/postprocessing/UnrealBloomPass.js'),
+          import('three/examples/jsm/postprocessing/ShaderPass.js'),
+          import('three/examples/jsm/postprocessing/OutputPass.js'),
+        ])
       if (cancelado) return
 
       let renderer: TresTipos.WebGLRenderer
       try {
-        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' })
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' })
       } catch {
         canvas.style.display = 'none'
         return
@@ -94,26 +99,48 @@ export default function Cena3D({ aoMedir, aoPronto, className }: Props) {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, pequeno ? 1.5 : 2))
       renderer.outputColorSpace = THREE.SRGBColorSpace
       renderer.toneMapping = THREE.ACESFilmicToneMapping
-      renderer.toneMappingExposure = 1.1
+      renderer.toneMappingExposure = 0.95
+      renderer.setClearColor('#020202', 1)
 
       const cena = new THREE.Scene()
       const pmrem = new THREE.PMREMGenerator(renderer)
       cena.environment = pmrem.fromScene(new RoomEnvironment(), 0.02).texture
-      cena.environmentIntensity = 0.9
+      // Ambiente fraco: os objetos saem da escuridão, desenhados pelas luzes.
+      cena.environmentIntensity = 0.38
 
       const camara = new THREE.PerspectiveCamera(30, 1, 0.1, 100)
       camara.position.set(0, 0, 16)
 
       // Luz de estúdio com o pôr do sol: chave quente, contraluz rosa, rebatida verde-água.
-      const chave = new THREE.DirectionalLight('#ffe2c0', 2.4)
-      chave.position.set(5, 8, 9)
-      const contra = new THREE.DirectionalLight('#ff4f8b', 2.2)
-      contra.position.set(-9, 1, -6)
-      const recorte = new THREE.DirectionalLight('#ffb020', 1.4)
-      recorte.position.set(8, -3, -5)
-      const agua = new THREE.PointLight('#3dd6c3', 22, 30)
-      agua.position.set(0, -7, 5)
-      cena.add(chave, contra, recorte, agua)
+      const chave = new THREE.DirectionalLight('#fff1e0', 3.4)
+      chave.position.set(7, 9, 6)
+      const contra = new THREE.DirectionalLight('#ff4f8b', 3.2)
+      contra.position.set(-10, 2, -8)
+      const recorte = new THREE.DirectionalLight('#ff8a3d', 2.6)
+      recorte.position.set(10, -4, -6)
+      const baixo = new THREE.PointLight('#ff5a1f', 30, 26)
+      baixo.position.set(0, -9, 3)
+      cena.add(chave, contra, recorte, baixo)
+
+      // Fundo: preto com o pôr do sol a nascer da base, desenhado na própria cena.
+      const fundo = new THREE.Mesh(
+        new THREE.PlaneGeometry(120, 70),
+        new THREE.ShaderMaterial({
+          depthWrite: false,
+          vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+          fragmentShader: [
+            'varying vec2 vUv;',
+            'void main() {',
+            '  vec2 p = (vUv - vec2(0.5, -0.02)) * vec2(1.4, 3.2);',
+            '  float sol = exp(-dot(p, p) * 5.0);',
+            '  vec3 cor = vec3(0.008) + vec3(1.0, 0.36, 0.12) * sol * 0.32 + vec3(1.0, 0.31, 0.55) * sol * sol * 0.08;',
+            '  gl_FragColor = vec4(cor, 1.0);',
+            '}',
+          ].join('\n'),
+        }),
+      )
+      fundo.position.z = -30
+      cena.add(fundo)
 
       // ---------------------------------------------------------------------
       // Poeira na luz: grãos que derivam devagar; de vez em quando um faísca.
@@ -187,7 +214,7 @@ export default function Cena3D({ aoMedir, aoPronto, className }: Props) {
             // Cintilar: uma pulsação suave e, nos grãos de faísca, um clarão curto.
             float pulso = 0.55 + 0.45 * sin(uTempo * (0.6 + dados.z * 2.0) + dados.y * 6.28);
             float faisca = dados.w * pow(max(0.0, sin(uTempo * 0.45 + dados.y * 3.7)), 40.0);
-            vBrilho = pulso * 0.72 + faisca * 3.4;
+            vBrilho = pulso * 0.42 + faisca * 2.2;
             vCor = cor;
             // Atrás: maior e desfocado (bokeh); à frente: fino e nítido.
             vSuave = 1.0 - perto;
@@ -244,6 +271,25 @@ export default function Cena3D({ aoMedir, aoPronto, className }: Props) {
         return g
       }
 
+      const cromo = new THREE.MeshPhysicalMaterial({ color: '#c9ced6', metalness: 1, roughness: 0.14, clearcoat: 1, clearcoatRoughness: 0.04 })
+      // Cristal: obsidiana espelhada; as facetas refletem as luzes e brilham iridescentes.
+      const vidro = new THREE.MeshPhysicalMaterial({
+        color: '#1c1216',
+        metalness: 0.55,
+        roughness: 0.04,
+        clearcoat: 1,
+        clearcoatRoughness: 0,
+        iridescence: 1,
+        iridescenceIOR: 1.7,
+        iridescenceThicknessRange: [250, 800],
+        envMapIntensity: 2.6,
+        flatShading: true,
+      })
+      const anel = () => new THREE.Group().add(new THREE.Mesh(new THREE.TorusGeometry(1, 0.34, 64, 160), cromo))
+      const cristal = () => new THREE.Group().add(new THREE.Mesh(new THREE.IcosahedronGeometry(1, 0), vidro))
+      const capsula = () => new THREE.Group().add(new THREE.Mesh(new THREE.CapsuleGeometry(0.45, 1.1, 16, 48), cromo))
+      const procedurais: Record<string, () => TresTipos.Group> = { moeda, anel, cristal, capsula }
+
       /** Centra o objeto e escala-o para o tamanho pedido. */
       function normalizar(objeto: TresTipos.Object3D, tamanho: number) {
         const caixa = new THREE.Box3().setFromObject(objeto)
@@ -289,8 +335,9 @@ export default function Cena3D({ aoMedir, aoPronto, className }: Props) {
       }
       PECAS.forEach((p, i) => {
         const c = corpos[i]!
-        if (p.modelo === 'moeda') {
-          const m = moeda()
+        const fabrica = procedurais[p.modelo]
+        if (fabrica) {
+          const m = fabrica()
           normalizar(m, p.tamanho)
           c.grupo.add(m)
           c.grupo.visible = true
@@ -400,6 +447,30 @@ export default function Cena3D({ aoMedir, aoPronto, className }: Props) {
       canvas.addEventListener('pointerup', aoSoltar)
       canvas.addEventListener('pointercancel', aoSoltar)
 
+      const composer = new EffectComposer(renderer)
+      composer.addPass(new RenderPass(cena, camara))
+      const brilho = new UnrealBloomPass(new THREE.Vector2(256, 256), pequeno ? 0.28 : 0.34, 0.4, 0.9)
+      composer.addPass(brilho)
+      const graduacao = new ShaderPass({
+        uniforms: { tDiffuse: { value: null } },
+        vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+        fragmentShader: [
+          'uniform sampler2D tDiffuse;',
+          'varying vec2 vUv;',
+          'void main() {',
+          '  vec4 c = texture2D(tDiffuse, vUv);',
+          '  float l = dot(c.rgb, vec3(0.299, 0.587, 0.114));',
+          '  c.rgb = mix(vec3(l), c.rgb, 0.86);',
+          '  c.rgb = (c.rgb - 0.5) * 1.06 + 0.5;',
+          '  float v = smoothstep(1.05, 0.35, length((vUv - 0.5) * vec2(1.25, 1.0)));',
+          '  c.rgb *= mix(0.55, 1.0, v);',
+          '  gl_FragColor = c;',
+          '}',
+        ].join('\n'),
+      })
+      composer.addPass(graduacao)
+      composer.addPass(new OutputPass())
+
       // ---------------------------------------------------------------------
       // Tamanho, visibilidade e ciclo
       // ---------------------------------------------------------------------
@@ -409,6 +480,8 @@ export default function Cena3D({ aoMedir, aoPronto, className }: Props) {
         const h = canvas.clientHeight
         if (!w || !h) return
         renderer.setSize(w, h, false)
+        composer.setSize(w, h)
+        brilho.setSize(w, h)
         camara.aspect = w / h
         camara.updateProjectionMatrix()
         recolocar(primeiroAjuste)
@@ -478,7 +551,7 @@ export default function Cena3D({ aoMedir, aoPronto, className }: Props) {
             }
           }
 
-        renderer.render(cena, camara)
+        composer.render()
         quadros++
         if (agora - marco > 500) {
           medir.current?.(Math.round((quadros * 1000) / (agora - marco)))
@@ -519,6 +592,7 @@ export default function Cena3D({ aoMedir, aoPronto, className }: Props) {
         })
         geoPoeira.dispose()
         matPoeira.dispose()
+        composer.dispose()
         pmrem.dispose()
         renderer.dispose()
       }
