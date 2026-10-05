@@ -214,7 +214,7 @@ async function principal() {
     { grupo: 'painel', rota: '/painel/conta', impersonado: true },
   ].filter(Boolean)
 
-  const browser = await chromium.launch()
+  const browser = await chromium.launch({ channel: process.env.E2E_NAVEGADOR || undefined })
   const resultados = []
   const fluidez = []
 

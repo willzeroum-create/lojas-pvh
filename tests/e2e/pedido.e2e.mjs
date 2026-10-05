@@ -24,7 +24,7 @@ function ok(mensagem) {
   console.log(`✓ ${mensagem}`)
 }
 
-const browser = await chromium.launch()
+const browser = await chromium.launch({ channel: process.env.E2E_NAVEGADOR || undefined })
 const contexto = await browser.newContext({
   viewport: { width: 390, height: 844 },
   isMobile: true,

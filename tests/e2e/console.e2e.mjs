@@ -92,7 +92,7 @@ async function principal() {
   })
   verificar(!erroLink && link.properties?.hashed_token, `gerar link: ${erroLink?.message}`)
 
-  const browser = await chromium.launch()
+  const browser = await chromium.launch({ channel: process.env.E2E_NAVEGADOR || undefined })
   const contexto = await browser.newContext({ viewport: { width: 1280, height: 900 } })
   const page = await contexto.newPage()
   const erros = []

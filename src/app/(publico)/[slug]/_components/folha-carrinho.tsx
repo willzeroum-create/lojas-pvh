@@ -185,7 +185,7 @@ export function FolhaCarrinho({ aberta, onFechar, tenant, loja, lojaAberta, cata
                 <div className="flex justify-between text-carvao">
                   <dt>Taxa de entrega</dt>
                   <dd className="tabular-nums">
-                    {calculo.taxaEntrega > 0 ? formatarBRL(calculo.taxaEntrega) : 'Grátis'}
+                    {porBairro && !zona ? 'Escolha o bairro' : calculo.taxaEntrega > 0 ? formatarBRL(calculo.taxaEntrega) : 'Grátis'}
                   </dd>
                 </div>
               )}
